@@ -1,0 +1,27 @@
+{
+  "name": "ia-ajedrez",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Plataforma de entrenamiento de ajedrez con IA (web, móvil y API).",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace @ia-ajedrez/web",
+    "dev:server": "npm run dev --workspace @ia-ajedrez/server",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "e2e": "npm run e2e --workspace @ia-ajedrez/web",
+    "data:puzzles": "node scripts/build-puzzles.mjs",
+    "data:openings": "node scripts/build-openings.mjs"
+  }
+}

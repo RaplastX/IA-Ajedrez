@@ -1,0 +1,115 @@
+import type { RepertoireLine } from '@ia-ajedrez/core';
+
+/** Repertorio inicial: líneas principales, elegidas por ser instructivas para club. */
+export const REPERTOIRE: RepertoireLine[] = [
+  {
+    id: 'italian',
+    name: 'Italiana (Giuoco Piano)',
+    eco: 'C54',
+    color: 'w',
+    moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'c3', 'Nf6', 'd3', 'd6', 'O-O', 'O-O'],
+    ideas: {
+      es: 'Desarrollo rápido y presión sobre f7. Con c3 y d3 se prepara d4 en el momento justo.',
+      en: 'Quick development and pressure on f7. c3 and d3 prepare a well-timed d4.',
+    },
+  },
+  {
+    id: 'ruy-closed',
+    name: 'Ruy López cerrada',
+    eco: 'C88',
+    color: 'w',
+    moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6', 'Ba4', 'Nf6', 'O-O', 'Be7', 'Re1', 'b5', 'Bb3', 'd6', 'c3', 'O-O'],
+    ideas: {
+      es: 'Presión indirecta sobre e5 y un centro sólido con c3 + d4. El alfil de b3 apunta a f7.',
+      en: 'Indirect pressure on e5 and a solid centre with c3 + d4. The b3 bishop eyes f7.',
+    },
+  },
+  {
+    id: 'qgd',
+    name: 'Gambito de Dama declinado',
+    eco: 'D55',
+    color: 'w',
+    moves: ['d4', 'd5', 'c4', 'e6', 'Nc3', 'Nf6', 'Bg5', 'Be7', 'e3', 'O-O', 'Nf3', 'h6', 'Bh4'],
+    ideas: {
+      es: 'Lucha por el centro con c4. La clavada en g5 dificulta que las negras liberen su juego.',
+      en: 'Fight for the centre with c4. The pin on g5 makes it hard for Black to free their game.',
+    },
+  },
+  {
+    id: 'london',
+    name: 'Sistema Londres',
+    eco: 'D02',
+    color: 'w',
+    moves: ['d4', 'd5', 'Bf4', 'Nf6', 'e3', 'e6', 'Nf3', 'c5', 'c3', 'Nc6', 'Nbd2', 'Bd6', 'Bg3', 'O-O', 'Bd3'],
+    ideas: {
+      es: 'Estructura fija y fácil de jugar: alfil fuera de la cadena de peones antes de e3.',
+      en: 'A fixed, easy-to-play setup: the bishop leaves the pawn chain before e3.',
+    },
+  },
+  {
+    id: 'najdorf',
+    name: 'Siciliana Najdorf',
+    eco: 'B90',
+    color: 'b',
+    moves: ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'a6'],
+    ideas: {
+      es: 'Juego asimétrico: las negras cambian un peón de flanco por uno central y controlan b5.',
+      en: 'Asymmetrical play: Black trades a wing pawn for a central one and controls b5.',
+    },
+  },
+  {
+    id: 'caro-kann',
+    name: 'Caro-Kann clásica',
+    eco: 'B18',
+    color: 'b',
+    moves: ['e4', 'c6', 'd4', 'd5', 'Nc3', 'dxe4', 'Nxe4', 'Bf5', 'Ng3', 'Bg6'],
+    ideas: {
+      es: 'Sólida: el alfil de casillas blancas sale antes de cerrar la cadena con e6.',
+      en: 'Solid: the light-squared bishop gets out before the e6 pawn locks it in.',
+    },
+  },
+  {
+    id: 'french-winawer',
+    name: 'Francesa Winawer',
+    eco: 'C15',
+    color: 'b',
+    moves: ['e4', 'e6', 'd4', 'd5', 'Nc3', 'Bb4'],
+    ideas: {
+      es: 'Clavada del caballo de c3 para presionar e4; las negras aceptan debilidades a cambio de juego activo.',
+      en: 'Pinning the c3 knight to pressure e4; Black accepts weaknesses for active play.',
+    },
+  },
+  {
+    id: 'kid',
+    name: 'India de Rey clásica',
+    eco: 'E92',
+    color: 'b',
+    moves: ['d4', 'Nf6', 'c4', 'g6', 'Nc3', 'Bg7', 'e4', 'd6', 'Nf3', 'O-O', 'Be2', 'e5'],
+    ideas: {
+      es: 'Las negras ceden el centro al principio para atacarlo con ...e5 y juego en el flanco de rey.',
+      en: 'Black concedes the centre early to strike it with ...e5 and kingside play.',
+    },
+  },
+  {
+    id: 'slav',
+    name: 'Eslava (variante checa)',
+    eco: 'D17',
+    color: 'b',
+    moves: ['d4', 'd5', 'c4', 'c6', 'Nf3', 'Nf6', 'Nc3', 'dxc4', 'a4', 'Bf5'],
+    ideas: {
+      es: 'Defensa sólida del peón d5 sin encerrar el alfil de c8, que sale a f5.',
+      en: 'A solid defence of d5 that does not lock in the c8 bishop, which goes to f5.',
+    },
+  },
+  {
+    id: 'scandinavian',
+    name: 'Escandinava con ...Qa5',
+    eco: 'B01',
+    color: 'b',
+    moves: ['e4', 'd5', 'exd5', 'Qxd5', 'Nc3', 'Qa5', 'd4', 'Nf6', 'Nf3', 'c6'],
+    ideas: {
+      es: 'Planteamiento directo: la dama se coloca en a5 y las negras completan un desarrollo cómodo.',
+      en: 'A direct approach: the queen sits on a5 and Black completes a comfortable development.',
+    },
+  },
+];
