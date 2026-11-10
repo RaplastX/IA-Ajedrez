@@ -41,7 +41,7 @@ convivencia con Stockfish) y añade un archivo `LICENSE`.
 
 | Recurso | Licencia | Notas |
 | --- | --- | --- |
-| Piezas "Cburnett" (Wikimedia Commons) | Triple licencia GFDL / BSD / GPL | Se usan bajo BSD; atribución a Cburnett en Ajustes → Licencias |
+| Piezas, armas y efectos en pixel art | Arte propio generado por código | Sin terceros; no se usa ningún recurso de otros juegos |
 | Puzzles de Lichess | CC0 | Sin obligaciones; se enlaza a cada puzzle original por cortesía |
 | Nombres de aperturas (lichess-org/chess-openings) | CC0 | — |
 | Tablebase de Lichess (API) | Servicio gratuito | Respetar límites de uso; considerar alojar tablebases Syzygy propias a gran escala |

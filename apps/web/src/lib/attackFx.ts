@@ -4,7 +4,7 @@
  * tiñe un instante del color del arma, el tablero tiembla en píxeles enteros y aparece el daño
  * como un número pequeño en fuente de píxeles. Sin carteles ni brillos: estilo retro.
  */
-import { PIECE_IMAGES, pieceKey } from '../components/Board/pieces';
+import { pieceImage, pieceKey } from '../components/Board/pieces';
 import { captureBurst, dustPuff, shatter, type ParticleSystem } from './fx';
 import { tap } from './haptics';
 import { C } from './pixel';
@@ -107,6 +107,12 @@ export function playAttack(o: AttackOptions): number {
           { offset: 1, transform: at(0, 0) },
         ];
     const duration = total + (spec.melee ? 0 : 340);
+    // Cuadro de ataque del sprite (ojos encendidos, cuerpo estirado) mientras dura el ataque.
+    const sprite = o.attackerEl.querySelector<HTMLElement>('.sprite');
+    if (sprite) {
+      sprite.classList.add('atk');
+      o.defer(() => sprite.classList.remove('atk'), duration);
+    }
     o.attackerEl.animate(frames, { duration, easing: stepsFor(duration), fill: 'backwards' });
   }
 
@@ -121,7 +127,7 @@ export function playAttack(o: AttackOptions): number {
     // La pieza capturada parpadea en blanco, sube un poco y se rompe en píxeles.
     if (o.victim) {
       const ghost = document.createElement('img');
-      ghost.src = PIECE_IMAGES[pieceKey(o.victim.color, o.victim.type)]!;
+      ghost.src = pieceImage(pieceKey(o.victim.color, o.victim.type), 5);
       ghost.className = 'fx-ghost';
       ghost.style.cssText = `width:${real}px;height:${real}px;left:${o.to[0] * real - real / 2}px;top:${o.to[1] * real - real / 2}px`;
       o.board.appendChild(ghost);

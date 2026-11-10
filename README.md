@@ -102,5 +102,5 @@ Vite hace de proxy de `/api` y `/ws` hacia `localhost:3000`. Para persistir dato
 ## Licencias de terceros
 
 Stockfish (GPL-3.0) se distribuye como programa independiente con su licencia en
-`/engine/COPYING-stockfish.txt`; piezas Cburnett (BSD); puzzles y aperturas de Lichess (CC0).
+`/engine/COPYING-stockfish.txt`; piezas y efectos en pixel art de dibujo propio; puzzles y aperturas de Lichess (CC0).
 Detalle completo en [docs/LEGAL.md](docs/LEGAL.md). El proyecto aún no declara licencia propia.

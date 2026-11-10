@@ -14,11 +14,6 @@ const LICENSES = [
     url: 'https://github.com/nmrugg/stockfish.js',
     extra: '/engine/COPYING-stockfish.txt',
   },
-  {
-    name: 'Piezas Cburnett (Wikimedia Commons)',
-    license: 'BSD / GPL / GFDL',
-    url: 'https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces',
-  },
   { name: 'Lichess puzzle database', license: 'CC0', url: 'https://database.lichess.org/#puzzles' },
   {
     name: 'lichess-org/chess-openings',

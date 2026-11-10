@@ -14,7 +14,7 @@ import { UNIT, WEAPONS, WeaponStage, type WeaponId } from '../../lib/weapons';
 import { tap } from '../../lib/haptics';
 import { play } from '../../lib/sound';
 import { motionEnabled, useSettings } from '../../store/settings';
-import { PIECE_IMAGES, pieceKey } from './pieces';
+import { pieceImage, pieceKey, pieceSheet } from './pieces';
 import './board.css';
 
 export interface BoardMove {
@@ -476,11 +476,7 @@ export function Board({
             <span
               className={`piece life-${piece!.type} side-${piece!.color}${drag?.from === square && drag.moved ? ' dragging-origin' : ''}`}
             >
-              <img src={PIECE_IMAGES[key]} alt="" draggable={false} />
-              <span className="eyes" aria-hidden="true">
-                <i />
-                <i />
-              </span>
+              <span className="sprite" style={{ backgroundImage: `url(${pieceSheet(key)})` }} />
             </span>
           )}
           {isTarget && <span className={piece ? 'target capture' : 'target'} />}
@@ -545,7 +541,7 @@ export function Board({
         {drag?.moved && (
           <img
             className="drag-ghost"
-            src={PIECE_IMAGES[drag.piece]}
+            src={pieceImage(drag.piece)}
             alt=""
             style={{
               width: drag.rect.size,
@@ -568,7 +564,7 @@ export function Board({
                   setSelected(null);
                 }}
               >
-                <img src={PIECE_IMAGES[pieceKey(turn, p)]} alt="" />
+                <img src={pieceImage(pieceKey(turn, p))} alt="" />
               </button>
             ))}
             <button type="button" className="promotion-cancel" onClick={() => setPromotion(null)}>

@@ -5,7 +5,7 @@
 | Recurso | Uso | Licencia | Atribución |
 | --- | --- | --- | --- |
 | [Stockfish](https://stockfishchess.org) · [stockfish.js](https://github.com/nmrugg/stockfish.js) | Motor (WASM y nativo) | GPL-3.0 | Texto en `/engine/COPYING-stockfish.txt` |
-| [Piezas Cburnett](https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces) | Piezas del tablero | GFDL / BSD / GPL (usadas bajo BSD) | "Piezas: Cburnett, Wikimedia Commons" |
+| Piezas y efectos en pixel art | Tablero, armas y partículas | Propio (dibujado por código, `sprites.ts` y `weapons.ts`) | — |
 | [Puzzles de Lichess](https://database.lichess.org/#puzzles) | Banco de táctica | CC0 | Enlace a cada puzzle |
 | [chess-openings](https://github.com/lichess-org/chess-openings) | Nombres de aperturas | CC0 | — |
 | [Tablebase de Lichess](https://tablebase.lichess.ovh) | Finales exactos | API gratuita | — |

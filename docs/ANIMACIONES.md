@@ -111,9 +111,11 @@ tambalea y cae, parpadea "MATE" en pixel art y el tablero se sacude con fuerza.
 diagonal con estela de chispas), torre (desliza pesada y hace temblar el tablero), dama (gira 360° al
 moverse) y rey (pisotón).
 
-**Piezas con vida:** ojos que parpadean (rojos y enfadados las negras) y una animación de reposo propia
-mientras es tu turno: el caballo mueve la cabeza y patea el suelo, el alfil se mece, la torre respira,
-la dama se eleva y el rey se agita nervioso.
+**Piezas en pixel art (dibujo propio):** las 12 piezas son sprites de 16×16 dibujados a mano en
+`components/Board/sprites.ts`: blancas crema con contorno marino y negras azul pizarra con ojos rojos.
+Cada una tiene **6 cuadros de animación**: reposo, aplastada, parpadeo, estirada o destello de la gema,
+ataque (ojos encendidos, cuerpo estirado) y daño (blanca con ojos cerrados). En reposo alternan
+cuadros con desfase entre piezas; al atacar usan el cuadro de ataque; al ser capturadas parpadean en blanco.
 
 **Ajustes:** en Ajustes → "Animaciones y efectos" se pueden apagar; también se desactivan con
 "reducir movimiento" del sistema.

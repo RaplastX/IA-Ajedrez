@@ -9,6 +9,7 @@
  * a el atacante y b el objetivo, en píxeles de juego.
  */
 import {
+  zoom,
   burst,
   C,
   clamp01,
@@ -33,6 +34,9 @@ export interface Pt {
 export type WeaponId = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 
 export const UNIT = 16;
+
+/** Las armas se dibujan 1,7 veces más grandes que su diseño base. */
+const K = 1.7;
 
 export interface WeaponSpec {
   id: WeaponId;
@@ -70,12 +74,12 @@ function dagger(g: Ctx, p: number, a: Pt, b: Pt) {
   const ny = ux;
   const pull = easeOut(seg(p, 0, 0.35));
   const thrust = easeIn(seg(p, 0.35, 0.55));
-  const reach = lerp(-5 * pull, d - 4, thrust);
+  const reach = lerp(-5 * K * pull, d - 4 * K, thrust);
   const bx = a.x + ux * reach;
   const by = a.y + uy * reach;
-  outlined(g, bx - ux * 4, by - uy * 4, bx, by, 2, C.wood); // empuñadura
-  outlined(g, bx + nx * 3, by + ny * 3, bx - nx * 3, by - ny * 3, 2, C.pink); // guarda
-  outlined(g, bx, by, bx + ux * 8, by + uy * 8, 2, C.steel); // hoja
+  outlined(g, bx - ux * 4 * K, by - uy * 4 * K, bx, by, 2, C.wood); // empuñadura
+  outlined(g, bx + nx * 3 * K, by + ny * 3 * K, bx - nx * 3 * K, by - ny * 3 * K, 2, C.pink); // guarda
+  outlined(g, bx, by, bx + ux * 8 * K, by + uy * 8 * K, 2, C.steel); // hoja
   const k = seg(p, 0.55, 1);
   if (k > 0 && k < 0.75) {
     for (let i = -1; i <= 1; i++)
@@ -101,31 +105,39 @@ function lance(g: Ctx, p: number, a: Pt, b: Pt) {
   const aim = easeOut(seg(p, 0, 0.35));
   const charge = easeIn(seg(p, 0.35, 0.6));
   const broken = p > 0.6;
-  const len = 22;
-  const front = lerp(3, Math.max(3, d - len + 7), charge);
+  const len = 22 * K;
+  const front = lerp(3 * K, Math.max(3 * K, d - len + 7 * K), charge);
   const sx = a.x + ux * front;
   const sy = a.y + uy * front + (1 - charge) * Math.sin(p * 90) * 0.6 * aim;
   if (charge > 0 && !broken) {
     for (let i = -3; i <= 3; i++) {
-      const o = i * 2.2;
-      const x0 = a.x + ux * (front - 6 - (i & 1) * 4) + nx * o;
-      const y0 = a.y + uy * (front - 6 - (i & 1) * 4) + ny * o;
-      line(g, x0, y0, x0 - ux * 8, y0 - uy * 8, C.white, 1);
+      const o = i * 2.2 * K;
+      const x0 = a.x + ux * (front - 6 * K - (i & 1) * 4 * K) + nx * o;
+      const y0 = a.y + uy * (front - 6 * K - (i & 1) * 4 * K) + ny * o;
+      line(g, x0, y0, x0 - ux * 8 * K, y0 - uy * 8 * K, C.white, 1);
     }
   }
   if (!broken) {
     outlined(g, sx, sy, sx + ux * len, sy + uy * len, 2, C.wood);
     // banderín que ondea a saltos
-    const fx = sx + ux * 6;
-    const fy = sy + uy * 6;
+    const fx = sx + ux * 6 * K;
+    const fy = sy + uy * 6 * K;
     const flap = frame(p, 2) ? 2 : -1;
-    outlined(g, fx, fy, fx - ux * 6 + nx * (3 + flap), fy - uy * 6 + ny * (3 + flap), 2, C.pink);
     outlined(
       g,
-      sx + ux * (len - 5),
-      sy + uy * (len - 5),
-      sx + ux * (len + 1),
-      sy + uy * (len + 1),
+      fx,
+      fy,
+      fx - ux * 6 * K + nx * (3 + flap) * K,
+      fy - uy * 6 * K + ny * (3 + flap) * K,
+      2,
+      C.pink,
+    );
+    outlined(
+      g,
+      sx + ux * (len - 5) * K,
+      sy + uy * (len - 5) * K,
+      sx + ux * (len + 1) * K,
+      sy + uy * (len + 1) * K,
       3,
       C.steel,
     );
@@ -133,7 +145,7 @@ function lance(g: Ctx, p: number, a: Pt, b: Pt) {
     const k = seg(p, 0.6, 1);
     for (let i = 0; i < 8; i++) {
       const ang = Math.atan2(uy, ux) + Math.PI + noise(i, 0) * 3;
-      const dist = 2 + k * (6 + (noise(i + 9, 0) + 0.5) * 8);
+      const dist = (2 + k * (6 + (noise(i + 9, 0) + 0.5) * 8)) * K;
       const x = b.x + Math.cos(ang) * dist;
       const y = b.y + Math.sin(ang) * dist + k * k * 6;
       if (k < 0.85 || i % 2) rect(g, x, y, 3, 1, C.wood);
@@ -147,16 +159,16 @@ function staff(g: Ctx, p: number, a: Pt, b: Pt) {
   const { ux, uy } = dir(a, b);
   const charge = easeOut(seg(p, 0, 0.45));
   const beam = seg(p, 0.45, 0.9);
-  const ox = a.x + ux * 9;
-  const oy = a.y + uy * 9;
-  outlined(g, a.x - ux * 3, a.y - uy * 3, ox, oy, 2, C.wood);
+  const ox = a.x + ux * 9 * K;
+  const oy = a.y + uy * 9 * K;
+  outlined(g, a.x - ux * 3 * K, a.y - uy * 3 * K, ox, oy, 2, C.wood);
   const r = 1 + charge * 4 + (frame(p) ? 0 : 1);
   disc(g, ox, oy, r + 1, C.navy);
   disc(g, ox, oy, r, C.lav);
   disc(g, ox, oy, r * 0.5, C.white);
   for (let i = 0; i < 6; i++) {
     const ang = Math.floor(p * 14) * 0.5 + (i * Math.PI) / 3;
-    rect(g, ox + Math.cos(ang) * (r + 4), oy + Math.sin(ang) * (r + 4), 1, 1, C.cream);
+    rect(g, ox + Math.cos(ang) * (r + 4) * K, oy + Math.sin(ang) * (r + 4) * K, 1, 1, C.cream);
   }
   if (beam > 0 && beam < 1) {
     const reach = easeOut(clamp01(beam * 3));
@@ -171,8 +183,8 @@ function staff(g: Ctx, p: number, a: Pt, b: Pt) {
     let py = oy;
     for (let i = 1; i <= 8; i++) {
       const t = i / 8;
-      const nx = lerp(ox, ex, t) - uy * noise(i, p) * 9;
-      const ny = lerp(oy, ey, t) + ux * noise(i, p) * 9;
+      const nx = lerp(ox, ex, t) - uy * noise(i, p) * 9 * K;
+      const ny = lerp(oy, ey, t) + ux * noise(i, p) * 9 * K;
       line(g, px, py, nx, ny, C.cream, 1);
       px = nx;
       py = ny;
@@ -188,30 +200,38 @@ function cannon(g: Ctx, p: number, a: Pt, b: Pt) {
   const nx = -uy;
   const ny = ux;
   const appear = p > 0.04;
-  const recoil = p > 0.38 && p < 0.6 ? Math.max(0, 1 - seg(p, 0.4, 0.6)) * 4 : 0;
+  const recoil = p > 0.38 && p < 0.6 ? Math.max(0, 1 - seg(p, 0.4, 0.6)) * 4 * K : 0;
   const away = p > 0.78 && frame(p) === 0; // parpadea al desaparecer
-  const mx = a.x + ux * 13;
-  const my = a.y + uy * 13;
+  const mx = a.x + ux * 13 * K;
+  const my = a.y + uy * 13 * K;
   if (appear && !away && p < 0.9) {
     const bx = a.x - ux * recoil;
     const by = a.y - uy * recoil;
-    outlined(g, bx, by, bx + ux * 13, by + uy * 13, 4, C.gray);
-    line(g, bx + nx * 1, by + ny * 1, bx + ux * 12 + nx * 1, by + uy * 12 + ny * 1, C.steel, 1);
-    outlined(g, bx + ux * 12, by + uy * 12, bx + ux * 14, by + uy * 14, 6, C.navy);
+    outlined(g, bx, by, bx + ux * 13 * K, by + uy * 13 * K, 4, C.gray);
+    line(
+      g,
+      bx + nx * 1 * K,
+      by + ny * 1 * K,
+      bx + ux * 12 * K + nx * 1 * K,
+      by + uy * 12 * K + ny * 1 * K,
+      C.steel,
+      1,
+    );
+    outlined(g, bx + ux * 12 * K, by + uy * 12 * K, bx + ux * 14 * K, by + uy * 14 * K, 6, C.navy);
     disc(g, bx, by, 4, C.navy);
     disc(g, bx, by, 2, C.gray);
     rect(g, bx, by, 1, 1, C.cream);
   }
   if (p > 0.38 && p < 0.5) {
     const big = p < 0.44;
-    burst(g, mx, my, big ? 9 : 6, C.yellow, 10, ux * 3, 2);
+    burst(g, mx, my, big ? 9 : 6, C.yellow, 10, ux * 3 * K, 2);
     disc(g, mx, my, big ? 4 : 2, C.white);
   }
   if (p >= 0.4 && p < 0.66) {
     const k = seg(p, 0.4, 0.62);
     const arc = (kk: number) => ({
       x: lerp(mx, b.x, kk),
-      y: lerp(my, b.y, kk) - Math.sin(kk * Math.PI) * 12,
+      y: lerp(my, b.y, kk) - Math.sin(kk * Math.PI) * 12 * K,
     });
     for (let i = 4; i >= 1; i--) {
       const q = arc(Math.max(0, k - i * 0.06));
@@ -240,24 +260,24 @@ function sabers(g: Ctx, p: number, a: Pt, b: Pt) {
   const raise = easeOut(seg(p, 0, 0.25));
   if (p < 0.3) {
     const cx = a.x;
-    const cy = a.y - 3 * raise;
+    const cy = a.y - 3 * K * raise;
     for (const sign of [-1, 1]) {
       const ang = Math.atan2(uy, ux) + sign * 0.9;
       outlined(
         g,
-        cx - Math.cos(ang) * 3,
-        cy - Math.sin(ang) * 3,
-        cx + Math.cos(ang) * 11,
-        cy + Math.sin(ang) * 11,
+        cx - Math.cos(ang) * 3 * K,
+        cy - Math.sin(ang) * 3 * K,
+        cx + Math.cos(ang) * 11 * K,
+        cy + Math.sin(ang) * 11 * K,
         2,
         C.steel,
       );
       outlined(
         g,
-        cx - Math.sin(ang) * 2,
-        cy + Math.cos(ang) * 2,
-        cx + Math.sin(ang) * 2,
-        cy - Math.cos(ang) * 2,
+        cx - Math.sin(ang) * 2 * K,
+        cy + Math.cos(ang) * 2 * K,
+        cx + Math.sin(ang) * 2 * K,
+        cy - Math.cos(ang) * 2 * K,
         2,
         C.pink,
       );
@@ -273,7 +293,7 @@ function sabers(g: Ctx, p: number, a: Pt, b: Pt) {
     line(g, x0, y0, ex, ey, C.pink, fade > 0.3 ? 3 : 5);
     line(g, x0, y0, ex, ey, C.white, fade > 0.3 ? 1 : 2);
   };
-  const r = 10;
+  const r = 10 * K;
   slash(0.28, 0.42, b.x - r, b.y - r, b.x + r, b.y + r);
   slash(0.4, 0.54, b.x + r, b.y - r, b.x - r, b.y + r);
   if (p > 0.42 && p < 0.58) burst(g, b.x, b.y, 11, C.yellow, 8, 0.4, 1);
@@ -289,27 +309,35 @@ function shotgun(g: Ctx, p: number, a: Pt, b: Pt) {
   const pump = Math.sin(seg(p, 0.18, 0.34) * Math.PI) * 3;
   const kick = p > 0.38 && p < 0.62 ? Math.max(0, 1 - seg(p, 0.4, 0.62)) : 0;
   const gone = p > 0.8 && frame(p) === 0;
-  const gx = a.x - ux * kick * 4;
+  const gx = a.x - ux * kick * 4 * K;
   const gy = a.y - uy * kick * 4 - kick * 2;
-  const muzzleX = gx + ux * 17;
-  const muzzleY = gy + uy * 17;
+  const muzzleX = gx + ux * 17 * K;
+  const muzzleY = gy + uy * 17 * K;
   if (appear && !gone && p < 0.92) {
-    outlined(g, gx - ux * 6, gy - uy * 6 + 1, gx, gy, 4, C.wood); // culata
-    outlined(g, gx, gy - 1, gx + ux * 17, gy + uy * 17 - 1, 2, C.steel);
-    outlined(g, gx + nx * 2, gy + ny * 2, gx + ux * 17 + nx * 2, gy + uy * 17 + ny * 2, 2, C.gray);
+    outlined(g, gx - ux * 6 * K, gy - uy * 6 * K + 1, gx, gy, 4, C.wood); // culata
+    outlined(g, gx, gy - 1, gx + ux * 17 * K, gy + uy * 17 * K - 1, 2, C.steel);
     outlined(
       g,
-      gx + ux * (7 - pump),
-      gy + uy * (7 - pump) + 2,
-      gx + ux * (11 - pump),
-      gy + uy * (11 - pump) + 2,
+      gx + nx * 2 * K,
+      gy + ny * 2 * K,
+      gx + ux * 17 * K + nx * 2 * K,
+      gy + uy * 17 * K + ny * 2 * K,
+      2,
+      C.gray,
+    );
+    outlined(
+      g,
+      gx + ux * (7 - pump) * K,
+      gy + uy * (7 - pump) * K + 2,
+      gx + ux * (11 - pump) * K,
+      gy + uy * (11 - pump) * K + 2,
       3,
       C.wood,
     );
     rect(g, muzzleX, muzzleY - 3, 1, 1, C.yellow);
   }
   if (p > 0.38 && p < 0.48) {
-    burst(g, muzzleX, muzzleY, p < 0.43 ? 11 : 7, C.yellow, 10, ux * 3, 2);
+    burst(g, muzzleX, muzzleY, p < 0.43 ? 11 : 7, C.yellow, 10, ux * 3 * K, 2);
     disc(g, muzzleX, muzzleY, p < 0.43 ? 4 : 2, C.white);
   }
   const t = easeOut(seg(p, 0.4, 0.52));
@@ -319,7 +347,7 @@ function shotgun(g: Ctx, p: number, a: Pt, b: Pt) {
       const ang = Math.atan2(uy, ux) + i * 0.07 * t;
       const x = muzzleX + Math.cos(ang) * dist;
       const y = muzzleY + Math.sin(ang) * dist;
-      line(g, x, y, x - Math.cos(ang) * 5, y - Math.sin(ang) * 5, C.yellow, 1);
+      line(g, x, y, x - Math.cos(ang) * 5 * K, y - Math.sin(ang) * 5 * K, C.yellow, 1);
       rect(g, x, y, 2, 2, C.white);
     }
   }
@@ -328,8 +356,8 @@ function shotgun(g: Ctx, p: number, a: Pt, b: Pt) {
     for (let i = 0; i < 4; i++) {
       smoke(
         g,
-        muzzleX + ux * (sm * 6 + i * 3),
-        muzzleY - sm * 6 - i * 2 + (i - 1.5) * 2,
+        muzzleX + ux * (sm * 6 + i * 3) * K,
+        muzzleY - sm * 6 * K - i * 2 * K + (i - 1.5) * 2 * K,
         2 + sm * 4,
         sm,
       );
@@ -357,6 +385,7 @@ interface Job {
   draw: (g: Ctx, p: number) => void;
   onHit?: () => void;
   onDone?: () => void;
+  zoom?: number;
 }
 
 /** Cuadros por segundo de las animaciones: a saltos, como el pixel art clásico. */
@@ -426,7 +455,9 @@ export class WeaponStage {
       const steps = Math.max(6, Math.round((job.ms / 1000) * FPS));
       const pq = p >= 1 ? 1 : Math.floor(p * steps) / steps;
       g.save();
+      zoom.k = job.zoom ?? 1;
       job.draw(g, pq);
+      zoom.k = 1;
       g.restore();
       if (!job.hitDone && p >= job.hit) {
         job.hitDone = true;

@@ -20,6 +20,10 @@ export const C = {
 
 export type Ctx = CanvasRenderingContext2D;
 
+/** Factor de tamaño de las armas: escala anchos, radios y recuadros (los efectos de texto usan 1). */
+export const zoom = { k: 1 };
+const z = (n: number) => n * zoom.k;
+
 export const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 export const seg = (p: number, from: number, to: number) => clamp01((p - from) / (to - from));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -28,12 +32,18 @@ export const easeIn = (t: number) => t * t * t;
 
 export function rect(g: Ctx, x: number, y: number, w: number, h: number, color: string) {
   g.fillStyle = color;
-  g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  g.fillRect(
+    Math.round(x),
+    Math.round(y),
+    Math.max(1, Math.round(z(w))),
+    Math.max(1, Math.round(z(h))),
+  );
 }
 
 /** Línea de Bresenham con grosor en píxeles enteros. */
 export function line(g: Ctx, x0: number, y0: number, x1: number, y1: number, color: string, w = 1) {
   g.fillStyle = color;
+  w = Math.max(1, Math.round(z(w)));
   let ax = Math.round(x0);
   let ay = Math.round(y0);
   const bx = Math.round(x1);
@@ -76,6 +86,7 @@ export function outlined(
 /** Círculo relleno; con `dither` solo pinta casillas alternas (desvanecido retro). */
 export function disc(g: Ctx, cx: number, cy: number, r: number, color: string, dither = false) {
   g.fillStyle = color;
+  r = z(r);
   const R = Math.ceil(r);
   for (let y = -R; y <= R; y++) {
     for (let x = -R; x <= R; x++) {
@@ -88,6 +99,7 @@ export function disc(g: Ctx, cx: number, cy: number, r: number, color: string, d
 
 export function ring(g: Ctx, cx: number, cy: number, r: number, color: string) {
   g.fillStyle = color;
+  r = z(r);
   const n = Math.max(12, Math.round(r * 7));
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2;

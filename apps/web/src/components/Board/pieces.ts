@@ -1,33 +1,20 @@
 /**
- * Piezas "Cburnett" (Wikimedia Commons), con triple licencia GFDL / BSD / GPL.
- * Se usan bajo la licencia BSD; ver docs/LEGAL.md y la página "Licencias".
+ * Piezas en pixel art propias (ver sprites.ts). Se generan al usarlas por primera vez.
  */
-import bB from '../../assets/pieces/Chess_bdt45.svg';
-import wB from '../../assets/pieces/Chess_blt45.svg';
-import bK from '../../assets/pieces/Chess_kdt45.svg';
-import wK from '../../assets/pieces/Chess_klt45.svg';
-import bN from '../../assets/pieces/Chess_ndt45.svg';
-import wN from '../../assets/pieces/Chess_nlt45.svg';
-import bP from '../../assets/pieces/Chess_pdt45.svg';
-import wP from '../../assets/pieces/Chess_plt45.svg';
-import bQ from '../../assets/pieces/Chess_qdt45.svg';
-import wQ from '../../assets/pieces/Chess_qlt45.svg';
-import bR from '../../assets/pieces/Chess_rdt45.svg';
-import wR from '../../assets/pieces/Chess_rlt45.svg';
-
-export const PIECE_IMAGES: Record<string, string> = {
-  wK,
-  wQ,
-  wR,
-  wB,
-  wN,
-  wP,
-  bK,
-  bQ,
-  bR,
-  bB,
-  bN,
-  bP,
-};
+import { frameUrl, sheetUrl, type Side } from './sprites';
 
 export const pieceKey = (color: 'w' | 'b', type: string) => `${color}${type.toUpperCase()}`;
+
+const split = (key: string): [string, Side] => [key[1]!.toLowerCase(), key[0] as Side];
+
+/** Imagen fija de una pieza (cuadro de reposo, o 5 = daño) para arrastre, coronación y fantasmas. */
+export function pieceImage(key: string, frame = 0): string {
+  const [type, side] = split(key);
+  return frameUrl(type, side, frame);
+}
+
+/** Hoja de animación de 6 cuadros. */
+export function pieceSheet(key: string): string {
+  const [type, side] = split(key);
+  return sheetUrl(type, side);
+}
