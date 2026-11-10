@@ -19,6 +19,7 @@ export function HomePage() {
   const themeStats = useProgress((s) => s.themeStats);
   const phaseErrors = useProgress((s) => s.phaseErrors);
   const personal = useProgress((s) => s.personalPuzzles.length);
+  const completedLessons = useProgress((s) => s.completedLessons);
 
   const level = levelFromXp(stats.xp);
   const day = today();
@@ -47,6 +48,16 @@ export function HomePage() {
           </Link>
         </div>
       </div>
+
+      {!completedLessons.some((id) => id.startsWith('b')) && (
+        <section className="card" style={{ marginBottom: 16 }} data-testid="newbie-card">
+          <h2>{t('home.newbieTitle')}</h2>
+          <p>{t('home.newbieBody')}</p>
+          <Link className="btn primary" to="/lessons">
+            {t('home.newbieCta')}
+          </Link>
+        </section>
+      )}
 
       <div className="grid cols-3" style={{ marginBottom: 16 }}>
         <section className="card stat" aria-label={t('home.level')}>

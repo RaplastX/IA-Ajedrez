@@ -28,7 +28,7 @@ export default function PlayPage() {
   const navigate = useNavigate();
   const recordGame = useProgress((s) => s.recordGame);
   const token = useSettings((s) => s.token);
-  const [elo, setElo] = useState(1200);
+  const [elo, setElo] = useState(400);
   const [colorChoice, setColorChoice] = useState<'w' | 'b' | 'random'>('w');
   const [game, setGame] = useState<GameState | null>(null);
   const [thinking, setThinking] = useState(false);

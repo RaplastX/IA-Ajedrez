@@ -50,6 +50,10 @@ export const en: DeepStringRecord<typeof es> = {
   },
   charts: { noData: 'No data yet.', showTable: 'Show as table' },
   home: {
+    newbieTitle: 'New to chess? Start here',
+    newbieBody:
+      'You do not need to know anything. In about 14 short lessons you will learn how each piece moves, the rules and your first moves, practising on the board with help when you get stuck.',
+    newbieCta: 'Start the course from zero',
     title: 'Hi! Ready to train?',
     subtitle: 'Today’s plan adapts to your weak spots.',
     dailyPuzzle: 'Daily puzzle',
@@ -333,7 +337,24 @@ export const en: DeepStringRecord<typeof es> = {
   lessons: {
     title: 'Lessons',
     subtitle: 'Strategy and basic tactics with interactive exercises.',
-    topics: { strategy: 'Strategy', tactics: 'Tactics', opening: 'Opening', endgame: 'Endgame' },
+    basicsTitle: 'Start from zero',
+    basicsHelp:
+      'If you have never played: learn the board, how each piece moves, the rules and your first moves, step by step.',
+    basicsProgress: '{{done}} of {{total}} lessons completed',
+    startCourse: 'Start from zero',
+    continueCourse: 'Continue the course',
+    moreTitle: 'More lessons',
+    explore:
+      'Try it yourself: tap a piece, see where it can go (the dots) and move it. The board resets by itself.',
+    prev: 'Back',
+    showMe: 'Show me the move',
+    topics: {
+      basics: 'Basics',
+      strategy: 'Strategy',
+      tactics: 'Tactics',
+      opening: 'Opening',
+      endgame: 'Endgame',
+    },
     steps_one: '{{count}} step',
     steps_other: '{{count}} steps',
     stepOf: 'Step {{current}} of {{total}}',

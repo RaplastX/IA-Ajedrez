@@ -43,6 +43,10 @@ export const es = {
   },
   charts: { noData: 'Todavía no hay datos.', showTable: 'Ver como tabla' },
   home: {
+    newbieTitle: '¿Nuevo en el ajedrez? Empieza aquí',
+    newbieBody:
+      'No necesitas saber nada. En unas 14 lecciones cortas aprenderás cómo se mueve cada pieza, las reglas y tus primeras jugadas, practicando en el tablero y con ayuda cuando te atasques.',
+    newbieCta: 'Empezar el curso desde cero',
     title: '¡Hola! ¿Entrenamos?',
     subtitle: 'Tu plan de hoy se adapta a tus puntos débiles.',
     dailyPuzzle: 'Puzzle del día',
@@ -327,7 +331,24 @@ export const es = {
   lessons: {
     title: 'Lecciones',
     subtitle: 'Estrategia y táctica básica con ejercicios interactivos.',
-    topics: { strategy: 'Estrategia', tactics: 'Táctica', opening: 'Apertura', endgame: 'Final' },
+    basicsTitle: 'Curso desde cero',
+    basicsHelp:
+      'Si nunca has jugado: aprende el tablero, cómo se mueve cada pieza, las reglas y tus primeras jugadas, paso a paso.',
+    basicsProgress: '{{done}} de {{total}} lecciones completadas',
+    startCourse: 'Empezar desde cero',
+    continueCourse: 'Continuar el curso',
+    moreTitle: 'Más lecciones',
+    explore:
+      'Prueba tú mismo: toca una pieza, mira a dónde puede ir (los puntos) y muévela. El tablero se restablece solo.',
+    prev: 'Anterior',
+    showMe: 'Muéstrame la jugada',
+    topics: {
+      basics: 'Básico',
+      strategy: 'Estrategia',
+      tactics: 'Táctica',
+      opening: 'Apertura',
+      endgame: 'Final',
+    },
     steps_one: '{{count}} paso',
     steps_other: '{{count}} pasos',
     stepOf: 'Paso {{current}} de {{total}}',

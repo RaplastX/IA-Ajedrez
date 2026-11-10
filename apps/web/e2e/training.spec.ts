@@ -62,3 +62,20 @@ test('analiza una partida en PGN y genera ejercicios', async ({ page }) => {
   await page.locator('.moves button').nth(4).click();
   await expect(page.getByTestId('tutor-panel')).toContainText('3.');
 });
+
+test('un principiante completa las primeras lecciones del curso desde cero', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('newbie-card')).toBeVisible();
+  await page.getByRole('link', { name: 'Empezar el curso desde cero' }).click();
+  await page.getByRole('button', { name: 'Empezar desde cero' }).click();
+  // Lección 1: solo lectura.
+  for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Siguiente' }).click();
+  await page.getByRole('button', { name: 'Terminar lección' }).click();
+  await expect(page.getByText('1 de 14 lecciones completadas')).toBeVisible();
+  // Lección 2 (peón): practicar, usar la ayuda y hacer la jugada.
+  await page.getByRole('button', { name: 'Continuar el curso' }).click();
+  await page.getByRole('button', { name: 'Siguiente' }).click();
+  await page.getByRole('button', { name: /Muéstrame la jugada/ }).click();
+  await move(page, 'e2e4');
+  await expect(page.getByTestId('lesson-status')).toContainText('Muy bien');
+});

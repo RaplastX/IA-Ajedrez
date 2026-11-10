@@ -1,4 +1,5 @@
-/** Lecciones interactivas de estrategia y táctica básica. */
+/** Lecciones interactivas: curso desde cero (basics) y estrategia/táctica. */
+import { BASICS } from './basics';
 export interface LessonStep {
   fen: string;
   text: { es: string; en: string };
@@ -6,12 +7,16 @@ export interface LessonStep {
   accept?: string[];
   success?: { es: string; en: string };
   arrows?: { from: string; to: string }[];
+  /** Casillas que se marcan en azul para señalar algo. */
+  highlights?: string[];
+  /** Paso de práctica libre: el alumno prueba jugadas y el tablero se restablece. */
+  explore?: boolean;
 }
 
 export interface Lesson {
   id: string;
   title: { es: string; en: string };
-  topic: 'strategy' | 'tactics' | 'opening' | 'endgame';
+  topic: 'basics' | 'strategy' | 'tactics' | 'opening' | 'endgame';
   /** Tema de puzzles relacionado para seguir practicando. */
   practiceTheme?: string;
   steps: LessonStep[];
@@ -20,6 +25,7 @@ export interface Lesson {
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 export const LESSONS: Lesson[] = [
+  ...BASICS,
   {
     id: 'center',
     title: { es: 'Control del centro', en: 'Controlling the centre' },
