@@ -439,7 +439,11 @@ export const en: DeepStringRecord<typeof es> = {
     preferences: 'Preferences',
     language: 'Language',
     boardTheme: 'Board colours',
-    themes: { green: 'Green', brown: 'Wood', blue: 'Blue' },
+    themes: { midnight: 'Midnight', ebony: 'Ebony', green: 'Green', brown: 'Wood', blue: 'Blue' },
+    appTheme: 'App theme',
+    appThemes: { dark: 'Premium dark', light: 'Light', system: 'Match system' },
+    sound: 'Sounds',
+    effects: 'Animations and effects (particles, confetti, haptics)',
     coordinates: 'Show coordinates',
     account: {
       title: 'Account',

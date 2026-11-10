@@ -21,6 +21,7 @@ memoriza aperturas, domina finales teóricos y sigue tu progreso.
 | **Tutor con IA** | Explicaciones por reglas (gratis, sin conexión) y, en Premium, en lenguaje natural con Claude o un modelo propio de Hugging Face. |
 | **Cuenta y privacidad** | Uso sin cuenta o con cuenta/invitado; sincronización; exportar y borrar datos (RGPD); analítica solo con consentimiento. |
 | **Premium** | Suscripción con Stripe Checkout. |
+| **Diseño premium** | Negro y cromo como el logo, intro animada, piezas que saltan con aplastamiento, capturas con la pieza saliendo volando, fragmentos y "+N", halo de jaque, confeti en los logros, sonidos sintetizados y vibración háptica. Respeta "reducir movimiento". |
 
 ## Estructura
 
@@ -95,6 +96,7 @@ Vite hace de proxy de `/api` y `/ws` hacia `localhost:3000`. Para persistir dato
 - [Legal y privacidad](docs/LEGAL.md) — checklist RGPD/LOPDP y licencias
 - [Despliegue](docs/DESPLIEGUE.md) — Compose, Vercel + Cloud Run, Kubernetes, Stripe, móvil
 - [Recursos](docs/RECURSOS.md) — enlaces y activos visuales con su licencia
+- [Diseño y animaciones](docs/ANIMACIONES.md) — tema premium, efectos y cómo añadir Lottie/Rive
 - [Roadmap](docs/ROADMAP.md)
 
 ## Licencias de terceros

@@ -9,7 +9,7 @@
 | [Puzzles de Lichess](https://database.lichess.org/#puzzles) | Banco de táctica | CC0 | Enlace a cada puzzle |
 | [chess-openings](https://github.com/lichess-org/chess-openings) | Nombres de aperturas | CC0 | — |
 | [Tablebase de Lichess](https://tablebase.lichess.ovh) | Finales exactos | API gratuita | — |
-| Icono de la app | `apps/web/public/icon.svg` | Propio | — |
+| Logo (caballo cromado) | `apps/web/public/icon-*.png`, `apps/mobile/resources/` | Propio (proporcionado por el cliente) | — |
 
 ## Documentación técnica
 

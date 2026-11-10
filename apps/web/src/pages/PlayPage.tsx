@@ -4,6 +4,7 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { Board, type BoardMove } from '../components/Board/Board';
+import { success } from '../lib/feedback';
 import { MoveList } from '../components/common';
 import { track } from '../lib/analytics';
 import { api } from '../lib/api';
@@ -43,6 +44,10 @@ export default function PlayPage() {
 
   function finish(state: GameState, outcome: Result) {
     setResult(outcome);
+    const won =
+      (outcome.score === '1-0' && state.playerColor === 'w') ||
+      (outcome.score === '0-1' && state.playerColor === 'b');
+    if (won) success();
     const chess = state.chess;
     chess.setHeader('Event', t('play.pgnEvent'));
     chess.setHeader('Date', new Date().toISOString().slice(0, 10).replace(/-/g, '.'));

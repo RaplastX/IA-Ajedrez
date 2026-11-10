@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { Board, type BoardMove } from '../components/Board/Board';
+import { failure, success } from '../lib/feedback';
 import puzzleBank from '../data/puzzles.json';
 import { THEME_CATALOG } from '../data/themes';
 import { track } from '../lib/analytics';
@@ -137,6 +138,7 @@ export default function TacticsPage() {
       setFen(applyUci(state.fen, uci));
       setLastMove([move.from, move.to]);
       setFeedback('wrong');
+      failure();
       setState(result.state);
       void record(false);
       return;
@@ -148,6 +150,7 @@ export default function TacticsPage() {
     if (result.state.status === 'solved' && !result.reply) {
       setState(result.state);
       setFeedback('solved');
+      success();
       void record(!hint);
       return;
     }
@@ -160,6 +163,7 @@ export default function TacticsPage() {
       setBusy(false);
       if (result.state.status === 'solved') {
         setFeedback('solved');
+        success();
         void record(!hint);
       }
     }, 450);

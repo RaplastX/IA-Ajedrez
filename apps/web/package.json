@@ -27,6 +27,8 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/haptics": "^8.0.2",
     "@ia-ajedrez/core": "*",
     "chess.js": "^1.4.0",
     "i18next": "^27.1.0",

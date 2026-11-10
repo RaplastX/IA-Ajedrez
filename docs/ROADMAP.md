@@ -18,8 +18,8 @@
 ## Fase 2 — Beta pública
 
 - [ ] Políticas legales publicadas y revisión de la licencia de Stockfish por plataforma (ver LEGAL).
-- [ ] Diseño visual en Figma: tema propio, ilustraciones y animaciones Lottie para logros.
-- [ ] Sonidos de jugada y vibración háptica en móvil.
+- [x] Tema oscuro premium, animaciones de piezas, partículas, confeti, sonidos y vibración.
+- [ ] Ilustraciones y animaciones Lottie/Rive propias (personajes) diseñadas en Figma/Rive.
 - [ ] Inicio de sesión con Google/Apple (OAuth 2.0 / OpenID Connect).
 - [ ] Recuperación de contraseña y verificación de correo.
 - [ ] Banco de puzzles ampliado (≥ 20 000) servido desde la API por páginas.

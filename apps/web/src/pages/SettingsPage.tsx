@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../lib/api';
 import { downloadText } from '../lib/download';
 import { pickData, useProgress } from '../store/progress';
-import { useSettings, type BoardTheme, type Language } from '../store/settings';
+import { useSettings, type AppTheme, type BoardTheme, type Language } from '../store/settings';
 
 const LICENSES = [
   {
@@ -129,7 +129,7 @@ export default function SettingsPage() {
                 value={settings.boardTheme}
                 onChange={(e) => settings.setBoardTheme(e.target.value as BoardTheme)}
               >
-                {(['green', 'brown', 'blue'] as const).map((th) => (
+                {(['midnight', 'ebony', 'green', 'brown', 'blue'] as const).map((th) => (
                   <option key={th} value={th}>
                     {t(`settings.themes.${th}`)}
                   </option>
@@ -143,6 +143,36 @@ export default function SettingsPage() {
                 onChange={(e) => settings.setShowCoordinates(e.target.checked)}
               />
               <span>{t('settings.coordinates')}</span>
+            </label>
+            <label className="field">
+              <span>{t('settings.appTheme')}</span>
+              <select
+                value={settings.appTheme}
+                onChange={(e) => settings.setAppTheme(e.target.value as AppTheme)}
+                data-testid="app-theme-select"
+              >
+                {(['dark', 'light', 'system'] as const).map((th) => (
+                  <option key={th} value={th}>
+                    {t(`settings.appThemes.${th}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={settings.sound}
+                onChange={(e) => settings.setSound(e.target.checked)}
+              />
+              <span>{t('settings.sound')}</span>
+            </label>
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={settings.effects}
+                onChange={(e) => settings.setEffects(e.target.checked)}
+              />
+              <span>{t('settings.effects')}</span>
             </label>
           </div>
         </section>

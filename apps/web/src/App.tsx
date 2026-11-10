@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Route, Routes } from 'react-router';
+import { NavLink, Route, Routes, useLocation } from 'react-router';
 import { ConsentBanner, Toasts } from './components/common';
+import { Celebration, Splash, useAppearance } from './components/effects';
 import { api } from './lib/api';
 import { HomePage } from './pages/HomePage';
 import { pickData, useProgress } from './store/progress';
@@ -70,6 +71,8 @@ function useServerSync() {
 export function App() {
   const { t } = useTranslation();
   useServerSync();
+  useAppearance();
+  const location = useLocation();
   return (
     <div className="app">
       <a href="#main" className="sr-only">
@@ -77,7 +80,7 @@ export function App() {
       </a>
       <aside className="sidebar">
         <NavLink to="/" className="brand" aria-label="IA Ajedrez">
-          <img src="/icon.svg" alt="" />
+          <img src="/icon-192.png" alt="" />
           <span>IA Ajedrez</span>
         </NavLink>
         <nav className="nav" aria-label={t('nav.label')}>
@@ -93,25 +96,29 @@ export function App() {
       </aside>
       <main id="main" className="main">
         <Suspense fallback={<p className="muted">{t('common.loading')}</p>}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/play" element={<PlayPage />} />
-            <Route path="/analysis" element={<AnalysisPage />} />
-            <Route path="/tactics" element={<TacticsPage />} />
-            <Route path="/openings" element={<OpeningsPage />} />
-            <Route path="/endgames" element={<EndgamesPage />} />
-            <Route path="/lessons" element={<LessonsPage />} />
-            <Route path="/online" element={<MultiplayerPage />} />
-            <Route path="/progress" element={<ProgressPage />} />
-            <Route path="/achievements" element={<AchievementsPage />} />
-            <Route path="/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<p>{t('common.notFound')}</p>} />
-          </Routes>
+          <div className="page" key={location.pathname}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/play" element={<PlayPage />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
+              <Route path="/tactics" element={<TacticsPage />} />
+              <Route path="/openings" element={<OpeningsPage />} />
+              <Route path="/endgames" element={<EndgamesPage />} />
+              <Route path="/lessons" element={<LessonsPage />} />
+              <Route path="/online" element={<MultiplayerPage />} />
+              <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/achievements" element={<AchievementsPage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="*" element={<p>{t('common.notFound')}</p>} />
+            </Routes>
+          </div>
         </Suspense>
       </main>
       <Toasts />
       <ConsentBanner />
+      <Celebration />
+      <Splash />
     </div>
   );
 }

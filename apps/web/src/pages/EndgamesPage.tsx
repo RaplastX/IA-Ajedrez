@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Board, type BoardMove } from '../components/Board/Board';
+import { failure, success } from '../lib/feedback';
 import { MoveList } from '../components/common';
 import { ENDGAMES, type EndgameDrill } from '../data/endgames';
 import { engineSupported, FULL_STRENGTH, getEngine } from '../lib/engine';
@@ -63,6 +64,7 @@ export default function EndgamesPage() {
   }
 
   function succeed() {
+    success();
     setStatus('success');
     if (drill) recordEndgame(drill.id);
   }
@@ -73,6 +75,7 @@ export default function EndgamesPage() {
       if (userWon && goal === 'win') succeed();
       else {
         setStatus('failed');
+        failure();
         setMessage(t('endgames.mated'));
       }
       return true;
@@ -81,6 +84,7 @@ export default function EndgamesPage() {
       if (goal === 'draw') succeed();
       else {
         setStatus('failed');
+        failure();
         setMessage(t(chess.isStalemate() ? 'endgames.stalemate' : 'endgames.drawn'));
       }
       return true;
@@ -109,6 +113,7 @@ export default function EndgamesPage() {
     setSource(verdict.source);
     if (!verdict.ok) {
       setStatus('failed');
+      failure();
       setMessage(
         t(drill.goal === 'win' ? 'endgames.lostWin' : 'endgames.lostDraw', { san: played.san }),
       );

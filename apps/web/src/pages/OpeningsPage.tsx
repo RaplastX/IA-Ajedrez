@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Board, type BoardMove } from '../components/Board/Board';
+import { failure, success } from '../lib/feedback';
 import { MoveList } from '../components/common';
 import { REPERTOIRE } from '../data/repertoire';
 import { useProgress } from '../store/progress';
@@ -47,7 +48,10 @@ export default function OpeningsPage() {
     if (p < line.moves.length && turnOf(p) !== line.color) p += 1;
     setPly(p);
     askedAt.current = Date.now();
-    if (p >= line.moves.length) setFeedback('done');
+    if (p >= line.moves.length) {
+      setFeedback('done');
+      success();
+    }
   }
 
   function startDrill() {
@@ -80,6 +84,7 @@ export default function OpeningsPage() {
     // Muestra la jugada correcta y continúa.
     const right = new Chess(fen).move(expected);
     setFeedback('bad');
+    failure();
     setArrow({ from: right.from, to: right.to });
     clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {

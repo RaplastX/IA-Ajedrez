@@ -439,7 +439,17 @@ export const es = {
     preferences: 'Preferencias',
     language: 'Idioma',
     boardTheme: 'Colores del tablero',
-    themes: { green: 'Verde', brown: 'Madera', blue: 'Azul' },
+    themes: {
+      midnight: 'Medianoche',
+      ebony: 'Ébano',
+      green: 'Verde',
+      brown: 'Madera',
+      blue: 'Azul',
+    },
+    appTheme: 'Tema de la app',
+    appThemes: { dark: 'Oscuro premium', light: 'Claro', system: 'Según el sistema' },
+    sound: 'Sonidos',
+    effects: 'Animaciones y efectos (partículas, confeti, vibración)',
     coordinates: 'Mostrar coordenadas',
     account: {
       title: 'Cuenta',

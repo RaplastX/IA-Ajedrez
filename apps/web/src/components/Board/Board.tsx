@@ -1,7 +1,17 @@
 import { Chess, type Square } from 'chess.js';
-import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSettings } from '../../store/settings';
+import { captureBurst, dustPuff, ParticleSystem, shatter } from '../../lib/fx';
+import { tap } from '../../lib/haptics';
+import { play } from '../../lib/sound';
+import { motionEnabled, useSettings } from '../../store/settings';
 import { PIECE_IMAGES, pieceKey } from './pieces';
 import './board.css';
 
@@ -30,6 +40,7 @@ export interface BoardProps {
 }
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const PIECE_VALUE: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 
 function squareAt(col: number, row: number, orientation: 'w' | 'b'): string {
   const file = orientation === 'w' ? FILES[col]! : FILES[7 - col]!;
@@ -73,6 +84,11 @@ export function Board({
   const [selected, setSelected] = useState<string | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [promotion, setPromotion] = useState<{ from: string; to: string } | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particles = useRef<ParticleSystem | null>(null);
+  const previousFen = useRef<string | null>(null);
+  /** Casilla donde se soltó una pieza arrastrada: no se anima el deslizamiento. */
+  const droppedAt = useRef<string | null>(null);
 
   const chess = useMemo(() => {
     try {
@@ -99,6 +115,197 @@ export function Board({
     if (!chess.inCheck()) return null;
     return chess.findPiece({ type: 'k', color: turn })[0] ?? null;
   }, [chess, turn]);
+
+  // Efectos al cambiar la posición: deslizamiento de la pieza, partículas al capturar,
+  // sonido, vibración y sacudida en el jaque mate. Todo por código, sin assets externos.
+  useEffect(() => {
+    const before = previousFen.current;
+    previousFen.current = fen;
+    if (!before || before === fen || !lastMove) return;
+    const [from, to] = lastMove;
+    let prev: Chess;
+    try {
+      prev = new Chess(before);
+    } catch {
+      return;
+    }
+    const moved = prev.get(from as Square);
+    const now = chess.get(to as Square);
+    if (!moved || !now || moved.color !== now.color) return; // no es la jugada anterior (p. ej. deshacer)
+    const target = prev.get(to as Square);
+    const enPassant = moved.type === 'p' && from[0] !== to[0] && !target;
+    const isCapture = (!!target && target.color !== moved.color) || enPassant;
+
+    play(chess.inCheck() ? 'check' : isCapture ? 'capture' : 'move');
+    tap(isCapture ? 'medium' : 'light');
+
+    const animate = motionEnabled();
+    const board = boardRef.current;
+    if (!animate || !board) return;
+    const dragged = droppedAt.current === to;
+    droppedAt.current = null;
+    const size = board.getBoundingClientRect().width / 8;
+    const piece = board.querySelector<HTMLElement>(`[data-square="${to}"] .piece`);
+    const [fx, fy] = squareCenter(from, orientation);
+    const [tx, ty] = squareCenter(to, orientation);
+    const dx = fx - tx;
+    const dy = fy - ty;
+    const timers: number[] = [];
+    const running: Animation[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
+    const canAnimate = (el: Element | null) =>
+      !!el && typeof (el as HTMLElement).animate === 'function';
+    particles.current ??= canvasRef.current ? new ParticleSystem(canvasRef.current) : null;
+    const system = particles.current;
+
+    // 1) Salto en arco con estiramiento en el aire y aplastamiento al aterrizar ("squash & stretch").
+    const hop = Math.min(0.75, 0.3 + Math.hypot(dx, dy) * 0.07) * 100;
+    const isKnight = moved.type === 'n';
+    const impact = dragged ? 0 : 250;
+    if (!dragged && piece && canAnimate(piece)) {
+      piece.animate(
+        [
+          { transform: `translate(${dx * 100}%, ${dy * 100}%) scale(1, 1)`, zIndex: 3 },
+          {
+            transform: `translate(${dx * 50}%, ${dy * 50 - hop}%) scale(0.92, 1.12) rotate(${isKnight ? -14 : 0}deg)`,
+            offset: 0.5,
+            zIndex: 3,
+          },
+          { transform: 'translate(0, 0) scale(1.2, 0.8)', offset: 0.82, zIndex: 3 },
+          { transform: 'translate(0, -4%) scale(0.95, 1.06)', offset: 0.92, zIndex: 3 },
+          { transform: 'translate(0, 0) scale(1, 1)', zIndex: 3 },
+        ],
+        { duration: 300, easing: 'cubic-bezier(0.33, 0, 0.2, 1)' },
+      );
+    }
+    later(() => system?.add(dustPuff(tx * size, ty * size, size)), impact);
+
+    // 2) Captura: destello, la pieza rival sale volando girando, fragmentos cromados,
+    //    número flotante con el material ganado y temblor del tablero según su valor.
+    if (isCapture) {
+      const capturedSquare = enPassant ? `${to[0]}${from[1]}` : to;
+      const capturedPiece = enPassant
+        ? { type: 'p', color: moved.color === 'w' ? 'b' : 'w' }
+        : target!;
+      const [cx, cy] = squareCenter(capturedSquare, orientation);
+      const value = PIECE_VALUE[capturedPiece.type] ?? 1;
+      const dir = Math.sign(-dx) || 1;
+      later(() => {
+        const ghost = document.createElement('img');
+        ghost.src = PIECE_IMAGES[pieceKey(capturedPiece.color as 'w' | 'b', capturedPiece.type)]!;
+        ghost.className = 'fx-ghost';
+        ghost.style.cssText = `width:${size}px;height:${size}px;left:${(cx - 0.5) * size}px;top:${(cy - 0.5) * size}px`;
+        board.appendChild(ghost);
+        if (canAnimate(ghost)) {
+          const fly = ghost.animate(
+            [
+              { transform: 'none', filter: 'brightness(4) drop-shadow(0 0 12px #fff)', opacity: 1 },
+              { transform: 'scale(1.15)', filter: 'brightness(1.6)', offset: 0.12 },
+              {
+                transform: `translate(${dir * 170}%, -150%) rotate(${dir * 300}deg) scale(0.85)`,
+                opacity: 1,
+                offset: 0.55,
+              },
+              {
+                transform: `translate(${dir * 260}%, 40%) rotate(${dir * 620}deg) scale(0.55)`,
+                opacity: 0,
+              },
+            ],
+            { duration: 760, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' },
+          );
+          fly.onfinish = () => ghost.remove();
+        } else {
+          ghost.remove();
+        }
+        system?.add([
+          ...captureBurst(cx * size, cy * size, size),
+          ...shatter(cx * size, cy * size, size, -dx, -dy, 10 + value * 2),
+        ]);
+        const score = document.createElement('span');
+        score.className = 'fx-score';
+        score.textContent = `+${value}`;
+        score.style.cssText = `left:${cx * size}px;top:${(cy - 0.35) * size}px;font-size:${size * 0.38}px`;
+        board.appendChild(score);
+        if (canAnimate(score)) {
+          const rise = score.animate(
+            [
+              { transform: 'translate(-50%, 0) scale(0.4)', opacity: 0 },
+              { transform: 'translate(-50%, -40%) scale(1.25)', opacity: 1, offset: 0.2 },
+              { transform: 'translate(-50%, -140%) scale(1)', opacity: 0 },
+            ],
+            { duration: 950, easing: 'ease-out' },
+          );
+          rise.onfinish = () => score.remove();
+        } else {
+          score.remove();
+        }
+        const amp = 2 + value * 0.9;
+        board.animate(
+          [
+            { transform: 'translate(0, 0)' },
+            { transform: `translate(${-amp}px, ${amp * 0.5}px)` },
+            { transform: `translate(${amp * 0.8}px, ${-amp * 0.4}px)` },
+            { transform: `translate(${-amp * 0.4}px, 0)` },
+            { transform: 'translate(0, 0)' },
+          ],
+          { duration: 260, easing: 'ease-out' },
+        );
+      }, impact);
+    }
+
+    // 3) Coronación: destello y chispas ascendentes.
+    if (moved.type === 'p' && (to[1] === '8' || to[1] === '1')) {
+      later(() => system?.add(captureBurst(tx * size, ty * size, size * 1.3)), impact);
+    }
+
+    // 4) Jaque mate: el rey derrotado cae y el tablero se sacude.
+    if (chess.isCheckmate()) {
+      const loserKing = chess.findPiece({ type: 'k', color: chess.turn() })[0];
+      later(() => {
+        const king = loserKing
+          ? board.querySelector<HTMLElement>(`[data-square="${loserKing}"] .piece`)
+          : null;
+        if (king && canAnimate(king)) {
+          running.push(
+            king.animate(
+              [
+                { transform: 'rotate(0deg)' },
+                { transform: 'rotate(-12deg) translateY(-6%)', offset: 0.25 },
+                { transform: 'rotate(88deg) translate(18%, 8%)', offset: 0.8 },
+                { transform: 'rotate(80deg) translate(18%, 6%)' },
+              ],
+              { duration: 700, easing: 'cubic-bezier(0.5, 0, 0.7, 1)', fill: 'forwards' },
+            ),
+          );
+        }
+        system?.add(
+          captureBurst(
+            (loserKing ? squareCenter(loserKing, orientation)[0] : tx) * size,
+            ty * size,
+            size * 1.6,
+          ),
+        );
+        board.animate(
+          [
+            { transform: 'translate(0, 0)' },
+            { transform: 'translate(-9px, 3px) rotate(-0.5deg)' },
+            { transform: 'translate(8px, -3px) rotate(0.4deg)' },
+            { transform: 'translate(-5px, 1px)' },
+            { transform: 'translate(0, 0)' },
+          ],
+          { duration: 480, easing: 'ease-out' },
+        );
+      }, impact + 120);
+    }
+    return () => {
+      timers.forEach(clearTimeout);
+      running.forEach((a) => a.cancel());
+    };
+    // Solo reacciona a cambios de posición.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen]);
+
+  useEffect(() => () => particles.current?.dispose(), []);
 
   const targets = selected ? (legalByFrom.get(selected) ?? new Set<string>()) : new Set<string>();
 
@@ -163,6 +370,7 @@ export function Board({
     setTimeout(() => (suppressClick.current = false), 0);
     const target = squareFromPoint(event.clientX, event.clientY);
     if (target && target !== from) {
+      droppedAt.current = target;
       if (!tryMove(from, target)) setSelected(null);
     } else {
       setSelected(from);
@@ -191,6 +399,8 @@ export function Board({
           className={classes.join(' ')}
           data-square={square}
           data-piece={key ?? undefined}
+          data-movable={legalByFrom.has(square) || undefined}
+          style={{ '--bob-delay': `${((col * 7 + row * 3) % 10) * -0.26}s` } as CSSProperties}
           aria-label={`${square}, ${pieceName}`}
           aria-pressed={selected === square}
           onClick={() => {
@@ -219,7 +429,7 @@ export function Board({
     <div className={`board-wrap theme-${theme}`}>
       <div
         ref={boardRef}
-        className="board"
+        className={`board${canMove ? ' can-move' : ''}`}
         role="group"
         aria-label={label ?? t('board.label')}
         data-fen={fen}
@@ -229,6 +439,7 @@ export function Board({
         onPointerCancel={() => setDrag(null)}
       >
         {squares}
+        <canvas ref={canvasRef} className="fx-layer" aria-hidden="true" />
         {arrows.length > 0 && (
           <svg className="arrows" viewBox="0 0 8 8" aria-hidden="true">
             <defs>

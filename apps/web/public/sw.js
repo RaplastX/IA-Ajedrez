@@ -4,7 +4,8 @@ const PRECACHE = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
   '/engine/stockfish.js',
   '/engine/stockfish.wasm',
 ];

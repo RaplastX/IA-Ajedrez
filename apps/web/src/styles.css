@@ -7,9 +7,10 @@
   --text: #1c1c1a;
   --text-2: #55544f;
   --text-3: #7b7a73;
-  --accent: #1f6f5c;
+  --accent: #2b2f36;
+  --accent-2: #5d646f;
   --accent-ink: #ffffff;
-  --accent-soft: #dcefe8;
+  --accent-soft: #e6e8ec;
   --good: #1d7a35;
   --bad: #b3261e;
   --warn: #9a6400;
@@ -17,6 +18,10 @@
   --grid: #e3e1da;
   --radius: 12px;
   --shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  --glow: 0 0 0 1px rgb(43 47 54 / 0.25), 0 8px 24px -14px rgb(43 47 54 / 0.45);
+  --bg-art: none;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   font-family:
     system-ui,
     -apple-system,
@@ -31,42 +36,52 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #141413;
-    --surface: #1d1d1b;
-    --surface-2: #272724;
-    --border: #3a3935;
-    --text: #f0efec;
-    --text-2: #c3c2b7;
-    --text-3: #96958d;
-    --accent: #3fae8f;
-    --accent-ink: #0d1f1a;
-    --accent-soft: #1d3a32;
-    --good: #5cc277;
+    --bg: #030304;
+    --surface: #0d0e10;
+    --surface-2: #17181c;
+    --border: #2a2c31;
+    --text: #f2f4f7;
+    --text-2: #b9bec7;
+    --text-3: #8c929c;
+    --accent: #d6dbe2;
+    --accent-2: #8e959f;
+    --accent-ink: #050506;
+    --accent-soft: #1d1f24;
+    --good: #6fd08a;
     --bad: #ff8a80;
     --warn: #f0b545;
     --series-1: #3987e5;
-    --grid: #2f2f2c;
-    --shadow: none;
+    --grid: #22242a;
+    --shadow: 0 10px 30px -18px rgb(0 0 0 / 0.9);
+    --glow: 0 0 0 1px rgb(220 226 235 / 0.28), 0 10px 34px -12px rgb(220 226 235 / 0.35);
+    --bg-art:
+      radial-gradient(900px 520px at 85% -12%, rgb(220 226 235 / 0.08), transparent 60%),
+      radial-gradient(700px 420px at -10% 110%, rgb(160 170 185 / 0.06), transparent 60%);
   }
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #141413;
-  --surface: #1d1d1b;
-  --surface-2: #272724;
-  --border: #3a3935;
-  --text: #f0efec;
-  --text-2: #c3c2b7;
-  --text-3: #96958d;
-  --accent: #3fae8f;
-  --accent-ink: #0d1f1a;
-  --accent-soft: #1d3a32;
-  --good: #5cc277;
+  --bg: #030304;
+  --surface: #0d0e10;
+  --surface-2: #17181c;
+  --border: #2a2c31;
+  --text: #f2f4f7;
+  --text-2: #b9bec7;
+  --text-3: #8c929c;
+  --accent: #d6dbe2;
+  --accent-2: #8e959f;
+  --accent-ink: #050506;
+  --accent-soft: #1d1f24;
+  --good: #6fd08a;
   --bad: #ff8a80;
   --warn: #f0b545;
   --series-1: #3987e5;
-  --grid: #2f2f2c;
-  --shadow: none;
+  --grid: #22242a;
+  --shadow: 0 10px 30px -18px rgb(0 0 0 / 0.9);
+  --glow: 0 0 0 1px rgb(220 226 235 / 0.28), 0 10px 34px -12px rgb(220 226 235 / 0.35);
+  --bg-art:
+    radial-gradient(900px 520px at 85% -12%, rgb(220 226 235 / 0.08), transparent 60%),
+    radial-gradient(700px 420px at -10% 110%, rgb(160 170 185 / 0.06), transparent 60%);
 }
 
 * {
@@ -77,6 +92,10 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
+}
+body {
+  background-image: var(--bg-art);
+  background-attachment: fixed;
 }
 body {
   min-height: 100vh;
@@ -702,4 +721,228 @@ th.num {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
+}
+
+/* ---------- Microinteracciones y transiciones premium ---------- */
+
+.btn,
+.chip,
+.nav a {
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s ease,
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+}
+.btn:active:not(:disabled),
+button.chip:active {
+  transform: scale(0.95);
+}
+.btn.primary {
+  background-image: linear-gradient(
+    160deg,
+    #ffffff 0%,
+    var(--accent) 38%,
+    var(--accent-2) 62%,
+    var(--accent) 100%
+  );
+  background-size: 100% 220%;
+  border-color: transparent;
+  box-shadow:
+    var(--glow),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-position 0.5s ease,
+    box-shadow 0.25s ease;
+}
+.btn.primary:hover:not(:disabled) {
+  background-position: 0 100%;
+}
+.btn.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+.nav a.active {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+@media (max-width: 860px) {
+  .nav a.active {
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+}
+
+a.card,
+button.card {
+  transition:
+    transform 0.25s var(--ease-out),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+a.card:hover,
+button.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+.brand img {
+  filter: drop-shadow(0 0 8px rgb(220 226 235 / 0.35));
+  border-radius: 8px;
+}
+
+/* Entrada de cada página. */
+.page {
+  animation: page-in 0.38s var(--ease-out);
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.status {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+.status.good {
+  animation: pop 0.45s var(--ease-spring);
+  background: rgb(111 208 138 / 0.12);
+}
+.status.bad {
+  animation: shake 0.4s ease;
+  background: rgb(255 138 128 / 0.1);
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+}
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.toast {
+  animation: toast-in 0.4s var(--ease-spring);
+  box-shadow: var(--shadow), var(--glow);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+.progress > span {
+  background-image: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.6s var(--ease-out);
+}
+
+.badge:not(.locked) .badge-icon {
+  display: inline-block;
+  animation: badge-shine 3.2s ease-in-out infinite;
+}
+@keyframes badge-shine {
+  0%,
+  80%,
+  100% {
+    transform: none;
+    filter: none;
+  }
+  88% {
+    transform: scale(1.15) rotate(-6deg);
+    filter: drop-shadow(0 0 10px rgb(235 240 248 / 0.9));
+  }
+}
+
+/* Capa de celebración (confeti) y presentación inicial. */
+.celebration {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 60;
+}
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 45%, #15171b 0%, #000 65%);
+  pointer-events: none;
+  animation: splash-out 0.5s ease 1.1s forwards;
+}
+.splash-logo {
+  width: 112px;
+  height: 112px;
+  animation: splash-logo 1.1s var(--ease-spring) both;
+  filter: drop-shadow(0 0 30px rgb(220 226 235 / 0.35));
+  border-radius: 26px;
+}
+.splash-title {
+  margin-top: 14px;
+  color: #f3efe6;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  text-align: center;
+  animation: splash-title 0.9s var(--ease-out) 0.35s both;
+}
+@keyframes splash-logo {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-12deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes splash-title {
+  from {
+    opacity: 0;
+    letter-spacing: 0.6em;
+  }
+}
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Sin animaciones si el sistema pide reducir movimiento o el usuario las desactiva. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+html[data-effects='off'] *,
+html[data-effects='off'] *::before,
+html[data-effects='off'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

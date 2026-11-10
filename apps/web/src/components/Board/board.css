@@ -6,6 +6,14 @@
   --light: #eeeed2;
   --dark: #769656;
 }
+.board-wrap.theme-midnight {
+  --light: #a9afb8;
+  --dark: #50565f;
+}
+.board-wrap.theme-ebony {
+  --light: #d8c39c;
+  --dark: #7b5a3c;
+}
 .board-wrap.theme-brown {
   --light: #f0d9b5;
   --dark: #b58863;
@@ -63,7 +71,7 @@
   inset: 0;
 }
 .sq.last::before {
-  background: rgb(255 214 0 / 0.38);
+  background: rgb(170 200 255 / 0.38);
 }
 .sq.selected::before {
   background: rgb(20 120 220 / 0.38);
@@ -199,4 +207,207 @@ path.arrow-hint {
   aspect-ratio: auto;
   border-radius: 999px;
   padding: 6px 16px;
+}
+
+/* ---------- Efectos premium ---------- */
+
+.board {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.04),
+    0 18px 40px -12px rgb(0 0 0 / 0.55),
+    0 0 70px -24px rgb(220 226 235 / 0.28);
+}
+
+.piece {
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.35));
+  transform-origin: 50% 85%;
+  will-change: transform;
+}
+
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Pieza seleccionada: se "levanta" con un rebote suave. */
+.sq.selected .piece {
+  animation: piece-lift 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+/* El caballo seleccionado además balancea la cabeza y la crin, como si respirara. */
+.sq.selected[data-piece$='N'] .piece {
+  animation:
+    piece-lift 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    knight-sway 1.4s ease-in-out 0.28s infinite;
+}
+/* La dama y el rey seleccionados emiten un brillo plateado. */
+.sq.selected[data-piece$='Q'] .piece,
+.sq.selected[data-piece$='K'] .piece {
+  filter: drop-shadow(0 0 7px rgb(235 240 248 / 0.9)) drop-shadow(0 4px 4px rgb(0 0 0 / 0.4));
+}
+
+@keyframes piece-lift {
+  to {
+    transform: translateY(-6%) scale(1.08);
+  }
+}
+@keyframes knight-sway {
+  0%,
+  100% {
+    transform: translateY(-6%) scale(1.08) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-7%) scale(1.08) rotate(-5deg);
+  }
+  65% {
+    transform: translateY(-5%) scale(1.08) rotate(3deg);
+  }
+}
+
+/* Jaque: halo rojo que late. */
+.sq.check::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgb(255 70 70 / 0.7);
+  animation: check-pulse 1.2s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes check-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 70 70 / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgb(255 70 70 / 0);
+  }
+}
+
+/* Destinos posibles con aparición suave. */
+.target {
+  animation: target-in 0.18s ease-out;
+}
+@keyframes target-in {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+.promotion button {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.promotion button:hover {
+  transform: scale(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sq.selected .piece,
+  .sq.selected[data-piece$='N'] .piece,
+  .sq.check::after,
+  .target {
+    animation: none;
+  }
+}
+
+/* ---------- "Juice" estilo arcade (Gambonanza / Shotgun King) ---------- */
+
+.board {
+  /* Brillo especular que recorre el tablero, como el cristal del logo. */
+  isolation: isolate;
+}
+.board::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.08) 45%,
+    rgb(255 255 255 / 0.16) 50%,
+    rgb(255 255 255 / 0.08) 55%,
+    transparent 65%
+  );
+  background-size: 300% 100%;
+  animation: board-sheen 9s ease-in-out infinite;
+}
+@keyframes board-sheen {
+  0%,
+  70% {
+    background-position: 130% 0;
+  }
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+.fx-ghost {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 6px 6px rgb(0 0 0 / 0.5));
+}
+.fx-score {
+  position: absolute;
+  pointer-events: none;
+  z-index: 6;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0 0 10px rgb(220 230 245 / 0.9),
+    0 2px 0 #6b727d,
+    0 3px 6px rgb(0 0 0 / 0.7);
+}
+
+/* Las piezas del bando que puede mover "respiran" suavemente, con desfase entre ellas. */
+.board.can-move .sq[data-movable]:not(.selected) .piece {
+  animation: idle-bob 2.6s ease-in-out infinite;
+  animation-delay: var(--bob-delay, 0s);
+}
+@keyframes idle-bob {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2.5%) scale(1.015, 0.99);
+  }
+}
+@media (hover: hover) {
+  .board.can-move .sq[data-movable]:hover .piece {
+    animation: none;
+    transform: translateY(-5%) scale(1.06);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+/* El rey en jaque tiembla. */
+.sq.check .piece {
+  animation: king-tremble 0.5s ease-in-out infinite;
+}
+@keyframes king-tremble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-4deg) translateX(-2%);
+  }
+  75% {
+    transform: rotate(4deg) translateX(2%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board::after,
+  .board.can-move .sq[data-movable] .piece,
+  .sq.check .piece {
+    animation: none;
+  }
 }

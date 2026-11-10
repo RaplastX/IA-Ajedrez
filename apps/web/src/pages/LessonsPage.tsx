@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Board, type BoardMove } from '../components/Board/Board';
+import { failure, success } from '../lib/feedback';
 import { LESSONS, type Lesson } from '../data/lessons';
 import { useProgress } from '../store/progress';
 
@@ -82,8 +83,10 @@ export default function LessonsPage() {
     setFen(chess.fen());
     if (step.accept!.includes(strip(san))) {
       setResult('good');
+      success(false);
     } else {
       setResult('bad');
+      failure();
       window.setTimeout(() => {
         setFen(step.fen);
         setLastMove(null);
@@ -95,6 +98,7 @@ export default function LessonsPage() {
     if (!lesson) return;
     if (isLast) {
       recordLesson(lesson.id);
+      success();
       setLesson(null);
       return;
     }
