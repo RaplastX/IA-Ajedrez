@@ -153,3 +153,14 @@ export function ConsentBanner() {
     </div>
   );
 }
+
+/** Aviso cuando una función necesita el servidor y no está conectado. */
+export function ServerNotice({ available }: { available: boolean | null }) {
+  const { t } = useTranslation();
+  if (available !== false) return null;
+  return (
+    <p className="status" role="status" data-testid="server-notice">
+      🔌 {t('server.unavailable')}
+    </p>
+  );
+}

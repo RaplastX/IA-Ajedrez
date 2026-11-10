@@ -14,9 +14,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Board, type BoardMove } from '../components/Board/Board';
-import { MoveList } from '../components/common';
+import { MoveList, ServerNotice } from '../components/common';
 import { api, websocketUrl } from '../lib/api';
 import { downloadText } from '../lib/download';
+import { useServerAvailable } from '../lib/server';
 import { useProgress } from '../store/progress';
 import { useSettings } from '../store/settings';
 
@@ -36,6 +37,7 @@ interface OnlineGame {
 export default function MultiplayerPage() {
   const { t } = useTranslation();
   const token = useSettings((s) => s.token);
+  const available = useServerAvailable();
   const setSession = useSettings((s) => s.setSession);
   const recordGame = useProgress((s) => s.recordGame);
   const [connection, setConnection] = useState<'connecting' | 'open' | 'closed'>('connecting');
@@ -159,9 +161,15 @@ export default function MultiplayerPage() {
           </div>
         </div>
         <section className="card">
+          <ServerNotice available={available} />
           <p>{t('online.needAccount')}</p>
           <div className="row">
-            <button type="button" className="btn primary" onClick={() => void playAsGuest()}>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={available === false}
+              onClick={() => void playAsGuest()}
+            >
               {t('online.guest')}
             </button>
             <Link className="btn" to="/settings">

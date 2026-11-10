@@ -73,3 +73,47 @@ Verifica la licencia de **cada archivo** y anótala en [RECURSOS.md](RECURSOS.md
 | LottieFiles, IconScout | Por animación: gratuitas con condiciones o de pago |
 | SF Symbols | Solo en apps para plataformas de Apple, según su licencia |
 | Juegos de referencia (*Shotgun King*, *Battle Chess*) | Solo inspiración: no copiar arte, personajes ni sonidos |
+
+
+## Estilo de las animaciones: pixel art retro
+
+Referencia visual: el estilo de *Shotgun King* (pixel art nítido, paleta de pocos colores, contornos
+duros, animación "a saltos"). Todo está dibujado por código con arte propio, sin recursos de ese juego.
+El ajedrez en sí no cambia: mismas piezas, mismas reglas.
+
+- Los efectos se dibujan en un canvas de **128×128** (16 píxeles por casilla) que se escala **sin
+  suavizado** (`image-rendering: pixelated`). Nada de degradados, brillos ni desenfoques.
+- Paleta fija: crema, lavanda, azul marino, rosa, amarillo, naranja, blanco y grises (`lib/pixel.ts`).
+- Las animaciones avanzan a ~14 cuadros por segundo y las partículas a 18, con *hit-stop* de 80 ms.
+- Al impactar, **todo el tablero se tiñe** del color del arma durante un instante y tiembla en píxeles
+  enteros, como en el juego de referencia. El daño aparece como un número pequeño en fuente de píxeles.
+- Sin carteles ni onomatopeyas: solo el número de daño y "MATE".
+
+## Armas de cada pieza
+
+Cada captura es un pequeño combate: el atacante vuelve a su casilla, se arma y usa **su arma**; la pieza
+capturada parpadea en blanco y se rompe en píxeles. Dibujado en `lib/weapons.ts`, coreografía en
+`lib/attackFx.ts`.
+
+| Pieza | Arma | Cómo ataca | Color del destello |
+| --- | --- | --- | --- |
+| Peón | Daga | Retrocede, se clava y deja un tajo | Rosa |
+| Caballo | Lanza con banderín | Carga con líneas de velocidad y la lanza se astilla | Amarillo |
+| Alfil | Bastón mágico | Orbe que se carga y rayo con relámpago en zigzag | Lavanda |
+| Torre | Cañón | Dispara con fogonazo y retroceso; bala con estela de humo y explosión | Naranja |
+| Dama | Sables gemelos | Se cruzan y hacen un tajo en X | Rosa |
+| Rey | Escopeta | Carga la corredera, fogonazo, perdigones y humo | Naranja |
+
+**Jaque mate:** si el mate no es una captura, la pieza dispara su arma contra el rey; después el rey se
+tambalea y cae, parpadea "MATE" en pixel art y el tablero se sacude con fuerza.
+
+**Movimiento con personalidad:** peón (saltito), caballo (gran salto con giro), alfil (carrera en
+diagonal con estela de chispas), torre (desliza pesada y hace temblar el tablero), dama (gira 360° al
+moverse) y rey (pisotón).
+
+**Piezas con vida:** ojos que parpadean (rojos y enfadados las negras) y una animación de reposo propia
+mientras es tu turno: el caballo mueve la cabeza y patea el suelo, el alfil se mece, la torre respira,
+la dama se eleva y el rey se agita nervioso.
+
+**Ajustes:** en Ajustes → "Animaciones y efectos" se pueden apagar; también se desactivan con
+"reducir movimiento" del sistema.

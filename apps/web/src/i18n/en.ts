@@ -49,6 +49,10 @@ export const en: DeepStringRecord<typeof es> = {
       'Your browser does not support WebAssembly or Web Workers, so the engine cannot run.',
   },
   charts: { noData: 'No data yet.', showTable: 'Show as table' },
+  server: {
+    unavailable:
+      'This feature needs the server, which is not connected yet. All training (play, analysis, tactics, openings, endgames and lessons) works without it.',
+  },
   home: {
     newbieTitle: 'New to chess? Start here',
     newbieBody:

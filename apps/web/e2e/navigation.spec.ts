@@ -33,3 +33,12 @@ test('cambia el idioma a inglés', async ({ page }) => {
   await page.getByRole('link', { name: 'Tactics' }).first().click();
   await expect(page.getByRole('heading', { name: 'Tactics' })).toBeVisible();
 });
+
+test('sin servidor, las funciones online avisan en vez de fallar', async ({ page }) => {
+  for (const path of ['/leaderboard', '/online']) {
+    await page.goto(path);
+    await expect(page.getByTestId('server-notice')).toBeVisible();
+  }
+  await page.goto('/online');
+  await expect(page.getByRole('button', { name: 'Jugar como invitado' })).toBeDisabled();
+});

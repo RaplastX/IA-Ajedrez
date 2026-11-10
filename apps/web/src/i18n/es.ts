@@ -42,6 +42,10 @@ export const es = {
     unsupported: 'Tu navegador no admite WebAssembly o Web Workers; el motor no puede ejecutarse.',
   },
   charts: { noData: 'Todavía no hay datos.', showTable: 'Ver como tabla' },
+  server: {
+    unavailable:
+      'Esta función necesita el servidor, que todavía no está conectado. Todo el entrenamiento (jugar, análisis, táctica, aperturas, finales y lecciones) funciona sin él.',
+  },
   home: {
     newbieTitle: '¿Nuevo en el ajedrez? Empieza aquí',
     newbieBody:

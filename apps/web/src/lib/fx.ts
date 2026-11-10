@@ -1,9 +1,11 @@
 /**
- * Efectos de partículas por código (Canvas 2D), sin dependencias ni assets:
- *  - `captureBurst`: chispas plateadas, humo y un destello circular al capturar una pieza.
- *  - `confetti`: lluvia de confeti cromado para celebrar logros.
+ * Partículas en pixel art (cuadrados duros, paleta limitada, física a pocos cuadros por segundo):
+ *  - `captureBurst`: chispas amarillas y humo punteado al capturar.
+ *  - `shatter`: fragmentos de la pieza capturada.
+ *  - `confetti`: cuadraditos de colores para celebrar logros.
  * La física es una función pura (`stepParticle`) para poder testearla.
  */
+import { C } from './pixel';
 
 export interface Particle {
   x: number;
@@ -19,16 +21,17 @@ export interface Particle {
   spin: number;
 }
 
-/** Paleta cromada del logo: blancos, platas y grafitos. */
-export const CHROME = ['#ffffff', '#eef2f7', '#cfd5de', '#a9b1bc', '#7d8590'];
+export const PALETTE = [C.cream, C.lav, C.pink, C.yellow, C.white];
 
-/** Avanza una partícula `dt` segundos. Devuelve false cuando debe desaparecer. */
-export function stepParticle(p: Particle, dt: number): boolean {
+/**
+ * Avanza una partícula `dt` segundos. `gs` escala gravedad y crecimientos al tamaño del mundo
+ * (1 = píxeles CSS; 0.27 = píxeles de juego del tablero). Devuelve false cuando debe desaparecer.
+ */
+export function stepParticle(p: Particle, dt: number, gs = 1): boolean {
   p.life += dt;
   if (p.life >= p.maxLife) return false;
-  const gravity = { spark: 900, confetti: 260, smoke: -40, ring: 0, shard: 1300, dust: -20 }[
-    p.kind
-  ];
+  const gravity =
+    { spark: 900, confetti: 260, smoke: -40, ring: 0, shard: 1300, dust: -20 }[p.kind] * gs;
   const drag = { spark: 1.1, confetti: 1.4, smoke: 2.2, ring: 0, shard: 0.6, dust: 4 }[p.kind];
   p.vx -= p.vx * drag * dt;
   p.vy -= p.vy * drag * dt;
@@ -36,83 +39,78 @@ export function stepParticle(p: Particle, dt: number): boolean {
   p.x += p.vx * dt;
   p.y += p.vy * dt;
   p.rotation += p.spin * dt;
-  if (p.kind === 'smoke' || p.kind === 'ring' || p.kind === 'dust')
-    p.size += (p.kind === 'ring' ? 220 : p.kind === 'dust' ? 18 : 26) * dt;
+  if (p.kind === 'smoke' || p.kind === 'ring' || p.kind === 'dust') {
+    p.size += (p.kind === 'ring' ? 220 : p.kind === 'dust' ? 18 : 26) * gs * dt;
+  }
   return true;
 }
 
-function draw(ctx: CanvasRenderingContext2D, p: Particle) {
+const STEP = 1 / 18; // física a 18 cuadros por segundo: el movimiento "va a saltos"
+
+function drawParticle(g: CanvasRenderingContext2D, p: Particle) {
   const t = p.life / p.maxLife;
-  const alpha = p.kind === 'confetti' ? Math.min(1, (1 - t) * 3) : 1 - t;
-  ctx.globalAlpha = Math.max(0, alpha);
+  const x = Math.round(p.x);
+  const y = Math.round(p.y);
+  const s = Math.max(1, Math.round(p.size));
   if (p.kind === 'ring') {
-    ctx.strokeStyle = p.color;
-    ctx.lineWidth = 3 * (1 - t) + 0.5;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.stroke();
+    if (t > 0.7) return;
+    g.fillStyle = C.white;
+    const n = Math.max(12, Math.round(p.size * 6));
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      g.fillRect(
+        Math.round(p.x + Math.cos(a) * p.size),
+        Math.round(p.y + Math.sin(a) * p.size),
+        1,
+        1,
+      );
+    }
+    return;
+  }
+  if (p.kind === 'smoke' || p.kind === 'dust') {
+    // humo punteado (tramado de ajedrez) que se vuelve más ralo al desvanecerse
+    g.fillStyle = p.color;
+    const r = Math.max(1, Math.round(p.size / 2));
+    for (let j = -r; j <= r; j++) {
+      for (let i = -r; i <= r; i++) {
+        if (i * i + j * j > r * r) continue;
+        if ((x + i + y + j) % 2 !== 0) continue;
+        if (t > 0.6 && (x + i) % 4 === 0) continue;
+        g.fillRect(x + i, y + j, 1, 1);
+      }
+    }
     return;
   }
   if (p.kind === 'confetti') {
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rotation);
-    ctx.fillStyle = p.color;
-    ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
-    ctx.restore();
+    g.fillStyle = p.color;
+    const flip = Math.floor(p.rotation * 2) % 2 === 0;
+    g.fillRect(x, y, flip ? s : Math.max(1, s / 2), flip ? Math.max(1, s / 2) : s);
     return;
   }
-  if (p.kind === 'shard') {
-    // Fragmento metálico triangular que gira y refleja la luz.
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.rotation);
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.moveTo(0, -p.size);
-    ctx.lineTo(p.size * 0.7, p.size * 0.6);
-    ctx.lineTo(-p.size * 0.6, p.size * 0.4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    return;
-  }
-  if (p.kind === 'spark') {
-    // Estela: un segmento en la dirección de la velocidad.
-    ctx.strokeStyle = p.color;
-    ctx.lineWidth = p.size;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(p.x, p.y);
-    ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03);
-    ctx.stroke();
-    return;
-  }
-  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-  gradient.addColorStop(0, p.color);
-  gradient.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = gradient;
-  ctx.beginPath();
-  ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-  ctx.fill();
+  // chispas y fragmentos: cuadraditos que parpadean al final de su vida
+  if (t > 0.75 && Math.floor(p.life * 36) % 2 === 0) return;
+  g.fillStyle = p.color;
+  g.fillRect(x, y, s, s);
 }
 
-/** Sistema de partículas ligado a un canvas; se detiene solo cuando no quedan partículas. */
+/**
+ * Sistema de partículas sobre un canvas. Con `res` el canvas es de baja resolución (res×res) y las
+ * coordenadas de las partículas están en píxeles de juego; sin `res` usa píxeles CSS.
+ */
 export class ParticleSystem {
   private particles: Particle[] = [];
   private frame = 0;
   private last = 0;
+  private acc = 0;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {}
-
-  private resize() {
-    const ratio = window.devicePixelRatio || 1;
-    const { width, height } = this.canvas.getBoundingClientRect();
-    if (this.canvas.width !== Math.round(width * ratio)) {
-      this.canvas.width = Math.round(width * ratio);
-      this.canvas.height = Math.round(height * ratio);
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    private readonly res = 0,
+  ) {
+    if (res) {
+      canvas.width = res;
+      canvas.height = res;
     }
-    return ratio;
   }
 
   add(particles: Particle[]) {
@@ -124,18 +122,25 @@ export class ParticleSystem {
   }
 
   private tick = (now: number) => {
-    const ctx = this.canvas.getContext('2d');
-    if (!ctx) return;
-    const dt = Math.min(0.05, (now - this.last) / 1000);
+    const g = this.canvas.getContext('2d');
+    if (!g) return;
+    this.acc += Math.min(0.1, (now - this.last) / 1000);
     this.last = now;
-    const ratio = this.resize();
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.globalCompositeOperation = 'lighter';
-    this.particles = this.particles.filter((p) => stepParticle(p, dt));
-    for (const p of this.particles) draw(ctx, p);
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
+    if (!this.res) {
+      const rect = this.canvas.getBoundingClientRect();
+      if (this.canvas.width !== Math.round(rect.width)) {
+        this.canvas.width = Math.round(rect.width);
+        this.canvas.height = Math.round(rect.height);
+      }
+    }
+    const gs = this.res ? this.res / 480 : 1;
+    while (this.acc >= STEP) {
+      this.acc -= STEP;
+      this.particles = this.particles.filter((p) => stepParticle(p, STEP, gs));
+    }
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    for (const p of this.particles) drawParticle(g, p);
     this.frame = this.particles.length ? requestAnimationFrame(this.tick) : 0;
   };
 
@@ -147,8 +152,9 @@ export class ParticleSystem {
 }
 
 const rand = (min: number, max: number, random: () => number) => min + (max - min) * random();
+const pick = (random: () => number) => PALETTE[Math.floor(random() * PALETTE.length)]!;
 
-/** Partículas de una captura en (x, y) (píxeles CSS). `scale` ≈ tamaño de casilla. */
+/** Chispas y humo de una captura en (x, y). `scale` ≈ tamaño de casilla en las mismas unidades. */
 export function captureBurst(
   x: number,
   y: number,
@@ -162,15 +168,15 @@ export function captureBurst(
       vx: 0,
       vy: 0,
       life: 0,
-      maxLife: 0.45,
-      size: scale * 0.2,
-      color: '#ffffff',
+      maxLife: 0.4,
+      size: scale * 0.15,
+      color: C.white,
       kind: 'ring',
       rotation: 0,
       spin: 0,
     },
   ];
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 22; i++) {
     const angle = rand(0, Math.PI * 2, random);
     const speed = rand(scale * 2.5, scale * 7, random);
     out.push({
@@ -180,14 +186,14 @@ export function captureBurst(
       vy: Math.sin(angle) * speed - scale * 2,
       life: 0,
       maxLife: rand(0.35, 0.75, random),
-      size: rand(1.2, 2.6, random),
-      color: CHROME[Math.floor(random() * CHROME.length)]!,
+      size: random() < 0.3 ? 2 : 1,
+      color: random() < 0.5 ? C.yellow : random() < 0.5 ? C.white : C.orange,
       kind: 'spark',
       rotation: 0,
       spin: 0,
     });
   }
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 5; i++) {
     out.push({
       x: x + rand(-scale * 0.2, scale * 0.2, random),
       y: y + rand(-scale * 0.2, scale * 0.2, random),
@@ -196,7 +202,7 @@ export function captureBurst(
       life: 0,
       maxLife: rand(0.6, 1.1, random),
       size: rand(scale * 0.15, scale * 0.3, random),
-      color: 'rgba(150,140,130,0.35)',
+      color: C.smoke,
       kind: 'smoke',
       rotation: 0,
       spin: 0,
@@ -205,7 +211,7 @@ export function captureBurst(
   return out;
 }
 
-/** Confeti desde la parte superior de un área de `width` píxeles. */
+/** Confeti de cuadraditos desde la parte superior de un área de `width` píxeles CSS. */
 export function confetti(
   width: number,
   count = 90,
@@ -218,20 +224,15 @@ export function confetti(
     vy: rand(60, 260, random),
     life: 0,
     maxLife: rand(1.6, 2.6, random),
-    size: rand(7, 12, random),
-    color: CHROME[Math.floor(random() * CHROME.length)]!,
+    size: Math.round(rand(5, 9, random) / 3) * 3,
+    color: pick(random),
     kind: 'confetti' as const,
     rotation: rand(0, Math.PI, random),
     spin: rand(-8, 8, random),
   }));
 }
 
-/** Lanza una celebración global (la escucha <Celebration />). */
-export function celebrate() {
-  window.dispatchEvent(new CustomEvent('ia:celebrate'));
-}
-
-/** Fragmentos de "cristal cromado" que salen despedidos en la dirección del golpe. */
+/** Fragmentos de la pieza capturada que salen despedidos en la dirección del golpe. */
 export function shatter(
   x: number,
   y: number,
@@ -243,8 +244,7 @@ export function shatter(
 ): Particle[] {
   const len = Math.hypot(dirX, dirY) || 1;
   return Array.from({ length: count }, () => {
-    const spread = rand(-0.9, 0.9, random);
-    const angle = Math.atan2(dirY / len, dirX / len) + spread;
+    const angle = Math.atan2(dirY / len, dirX / len) + rand(-0.9, 0.9, random);
     const speed = rand(scale * 3, scale * 8, random);
     return {
       x: x + rand(-scale * 0.2, scale * 0.2, random),
@@ -253,23 +253,23 @@ export function shatter(
       vy: Math.sin(angle) * speed - scale * 3,
       life: 0,
       maxLife: rand(0.5, 0.95, random),
-      size: rand(scale * 0.05, scale * 0.12, random),
-      color: CHROME[Math.floor(random() * CHROME.length)]!,
+      size: random() < 0.35 ? 2 : 1,
+      color: random() < 0.5 ? C.cream : random() < 0.5 ? C.white : C.navy,
       kind: 'shard' as const,
-      rotation: rand(0, Math.PI * 2, random),
-      spin: rand(-14, 14, random),
+      rotation: 0,
+      spin: 0,
     };
   });
 }
 
-/** Nubecilla de polvo al aterrizar una pieza tras su salto. */
+/** Nubecilla de polvo al aterrizar una pieza. */
 export function dustPuff(
   x: number,
   y: number,
   scale: number,
   random: () => number = Math.random,
 ): Particle[] {
-  return Array.from({ length: 8 }, (_, i) => {
+  return Array.from({ length: 6 }, (_, i) => {
     const side = i % 2 ? 1 : -1;
     return {
       x: x + side * scale * 0.15,
@@ -277,12 +277,17 @@ export function dustPuff(
       vx: side * rand(scale * 0.8, scale * 2.2, random),
       vy: rand(-scale * 0.6, -scale * 0.1, random),
       life: 0,
-      maxLife: rand(0.35, 0.6, random),
-      size: rand(scale * 0.05, scale * 0.1, random),
-      color: 'rgba(200,205,215,0.28)',
+      maxLife: rand(0.3, 0.5, random),
+      size: rand(scale * 0.12, scale * 0.2, random),
+      color: C.smoke,
       kind: 'dust' as const,
       rotation: 0,
       spin: 0,
     };
   });
+}
+
+/** Lanza una celebración global (la escucha <Celebration />). */
+export function celebrate() {
+  window.dispatchEvent(new CustomEvent('ia:celebrate'));
 }

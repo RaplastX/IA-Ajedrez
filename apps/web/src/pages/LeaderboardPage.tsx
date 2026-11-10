@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { ServerNotice } from '../components/common';
 import { api, ApiError } from '../lib/api';
+import { useServerAvailable } from '../lib/server';
 import { useSettings } from '../store/settings';
 
 type Board = 'puzzle' | 'xp';
@@ -10,6 +12,7 @@ export default function LeaderboardPage() {
   const { t } = useTranslation();
   const user = useSettings((s) => s.user);
   const [board, setBoard] = useState<Board>('puzzle');
+  const available = useServerAvailable();
   // El resultado guarda a qué tabla pertenece: así "cargando" se deriva sin setState en el efecto.
   const [result, setResult] = useState<{
     board: Board;
@@ -18,6 +21,7 @@ export default function LeaderboardPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (available !== true) return;
     let active = true;
     api
       .leaderboard(board)
@@ -33,7 +37,7 @@ export default function LeaderboardPage() {
     return () => {
       active = false;
     };
-  }, [board]);
+  }, [board, available]);
 
   const current = result?.board === board ? result : null;
   const entries = current?.entries ?? null;
@@ -61,13 +65,16 @@ export default function LeaderboardPage() {
         </div>
       </div>
       <section className="card">
-        {error && (
+        <ServerNotice available={available} />
+        {available !== false && error && (
           <p className="muted">
             {t(`leaderboard.errors.${error}`)}{' '}
             {!user && <Link to="/settings">{t('leaderboard.login')}</Link>}
           </p>
         )}
-        {!error && !entries && <p className="muted">{t('common.loading')}</p>}
+        {available !== false && !error && !entries && (
+          <p className="muted">{t('common.loading')}</p>
+        )}
         {entries && entries.length === 0 && <p className="muted">{t('leaderboard.empty')}</p>}
         {entries && entries.length > 0 && (
           <table>

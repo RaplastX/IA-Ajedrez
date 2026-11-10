@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../lib/api';
+import { ServerNotice } from '../components/common';
 import { downloadText } from '../lib/download';
+import { useServerAvailable } from '../lib/server';
 import { pickData, useProgress } from '../store/progress';
 import { useSettings, type AppTheme, type BoardTheme, type Language } from '../store/settings';
 
@@ -35,6 +37,7 @@ const LICENSES = [
 export default function SettingsPage() {
   const { t, i18n } = useTranslation();
   const settings = useSettings();
+  const available = useServerAvailable();
   const resetProgress = useProgress((s) => s.reset);
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [form, setForm] = useState({
@@ -179,6 +182,7 @@ export default function SettingsPage() {
 
         <section className="card">
           <h2>{t('settings.account.title')}</h2>
+          <ServerNotice available={available} />
           {settings.user ? (
             <div className="panel">
               <p>
@@ -250,7 +254,7 @@ export default function SettingsPage() {
                   <span>{t('settings.account.acceptTerms')}</span>
                 </label>
               )}
-              <button type="submit" className="btn primary">
+              <button type="submit" className="btn primary" disabled={available === false}>
                 {t(`settings.account.${mode}`)}
               </button>
             </form>
@@ -264,6 +268,7 @@ export default function SettingsPage() {
 
         <section className="card">
           <h2>⭐ {t('settings.premium.title')}</h2>
+          <ServerNotice available={available} />
           <p className="small muted">{t('settings.premium.body')}</p>
           <button
             type="button"

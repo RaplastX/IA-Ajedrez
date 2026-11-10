@@ -8,7 +8,9 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { mateFlourish, playAttack } from '../../lib/attackFx';
 import { captureBurst, dustPuff, ParticleSystem, shatter } from '../../lib/fx';
+import { UNIT, WEAPONS, WeaponStage, type WeaponId } from '../../lib/weapons';
 import { tap } from '../../lib/haptics';
 import { play } from '../../lib/sound';
 import { motionEnabled, useSettings } from '../../store/settings';
@@ -40,7 +42,81 @@ export interface BoardProps {
 }
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const PIECE_VALUE: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+/** Personalidad de movimiento de cada pieza. */
+const MOVE_STYLE: Record<
+  string,
+  {
+    hop: number;
+    ms: number;
+    air: string;
+    land: string;
+    skew: number;
+    spin: number;
+    trail: 'dust' | 'spark';
+    quake: number;
+  }
+> = {
+  p: {
+    hop: 0.28,
+    ms: 280,
+    air: '0.94, 1.1',
+    land: '1.15, 0.85',
+    skew: 0,
+    spin: 0,
+    trail: 'dust',
+    quake: 0,
+  },
+  n: {
+    hop: 0.9,
+    ms: 420,
+    air: '0.9, 1.18',
+    land: '1.25, 0.75',
+    skew: 0,
+    spin: -24,
+    trail: 'dust',
+    quake: 3,
+  },
+  b: {
+    hop: 0.08,
+    ms: 230,
+    air: '0.85, 1.05',
+    land: '1.1, 0.9',
+    skew: -16,
+    spin: 0,
+    trail: 'spark',
+    quake: 0,
+  },
+  r: {
+    hop: 0.05,
+    ms: 360,
+    air: '1.1, 0.92',
+    land: '1.2, 0.8',
+    skew: 0,
+    spin: 0,
+    trail: 'dust',
+    quake: 5,
+  },
+  q: {
+    hop: 0.35,
+    ms: 380,
+    air: '1.05, 1.1',
+    land: '1.15, 0.88',
+    skew: 0,
+    spin: 360,
+    trail: 'spark',
+    quake: 0,
+  },
+  k: {
+    hop: 0.2,
+    ms: 440,
+    air: '1.1, 1.05',
+    land: '1.35, 0.7',
+    skew: 0,
+    spin: 0,
+    trail: 'dust',
+    quake: 8,
+  },
+};
 
 function squareAt(col: number, row: number, orientation: 'w' | 'b'): string {
   const file = orientation === 'w' ? FILES[col]! : FILES[7 - col]!;
@@ -85,6 +161,8 @@ export function Board({
   const [drag, setDrag] = useState<DragState | null>(null);
   const [promotion, setPromotion] = useState<{ from: string; to: string } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const weaponCanvasRef = useRef<HTMLCanvasElement>(null);
+  const stage = useRef<WeaponStage | null>(null);
   const particles = useRef<ParticleSystem | null>(null);
   const previousFen = useRef<string | null>(null);
   /** Casilla donde se soltó una pieza arrastrada: no se anima el deslizamiento. */
@@ -142,9 +220,8 @@ export function Board({
     const animate = motionEnabled();
     const board = boardRef.current;
     if (!animate || !board) return;
-    const dragged = droppedAt.current === to;
     droppedAt.current = null;
-    const size = board.getBoundingClientRect().width / 8;
+    const size = UNIT; // píxeles de juego por casilla (canvas de 128×128)
     const piece = board.querySelector<HTMLElement>(`[data-square="${to}"] .piece`);
     const [fx, fy] = squareCenter(from, orientation);
     const [tx, ty] = squareCenter(to, orientation);
@@ -155,147 +232,125 @@ export function Board({
     const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(fn, ms));
     const canAnimate = (el: Element | null) =>
       !!el && typeof (el as HTMLElement).animate === 'function';
-    particles.current ??= canvasRef.current ? new ParticleSystem(canvasRef.current) : null;
+    particles.current ??= canvasRef.current
+      ? new ParticleSystem(canvasRef.current, WeaponStage.RES)
+      : null;
+    stage.current ??= weaponCanvasRef.current ? new WeaponStage(weaponCanvasRef.current) : null;
     const system = particles.current;
+    const isMate = chess.isCheckmate();
+    const weapon = moved.type as WeaponId;
+    const loserKing = isMate ? chess.findPiece({ type: 'k', color: chess.turn() })[0] : undefined;
+    let settle = 0; // ms hasta que termina la acción principal
 
-    // 1) Salto en arco con estiramiento en el aire y aplastamiento al aterrizar ("squash & stretch").
-    const hop = Math.min(0.75, 0.3 + Math.hypot(dx, dy) * 0.07) * 100;
-    const isKnight = moved.type === 'n';
-    const impact = dragged ? 0 : 250;
-    if (!dragged && piece && canAnimate(piece)) {
-      piece.animate(
-        [
-          { transform: `translate(${dx * 100}%, ${dy * 100}%) scale(1, 1)`, zIndex: 3 },
-          {
-            transform: `translate(${dx * 50}%, ${dy * 50 - hop}%) scale(0.92, 1.12) rotate(${isKnight ? -14 : 0}deg)`,
-            offset: 0.5,
-            zIndex: 3,
-          },
-          { transform: 'translate(0, 0) scale(1.2, 0.8)', offset: 0.82, zIndex: 3 },
-          { transform: 'translate(0, -4%) scale(0.95, 1.06)', offset: 0.92, zIndex: 3 },
-          { transform: 'translate(0, 0) scale(1, 1)', zIndex: 3 },
-        ],
-        { duration: 300, easing: 'cubic-bezier(0.33, 0, 0.2, 1)' },
-      );
-    }
-    later(() => system?.add(dustPuff(tx * size, ty * size, size)), impact);
-
-    // 2) Captura: destello, la pieza rival sale volando girando, fragmentos cromados,
-    //    número flotante con el material ganado y temblor del tablero según su valor.
     if (isCapture) {
+      // Captura: el atacante usa SU arma sobre la víctima.
       const capturedSquare = enPassant ? `${to[0]}${from[1]}` : to;
-      const capturedPiece = enPassant
-        ? { type: 'p', color: moved.color === 'w' ? 'b' : 'w' }
-        : target!;
-      const [cx, cy] = squareCenter(capturedSquare, orientation);
-      const value = PIECE_VALUE[capturedPiece.type] ?? 1;
-      const dir = Math.sign(-dx) || 1;
-      later(() => {
-        const ghost = document.createElement('img');
-        ghost.src = PIECE_IMAGES[pieceKey(capturedPiece.color as 'w' | 'b', capturedPiece.type)]!;
-        ghost.className = 'fx-ghost';
-        ghost.style.cssText = `width:${size}px;height:${size}px;left:${(cx - 0.5) * size}px;top:${(cy - 0.5) * size}px`;
-        board.appendChild(ghost);
-        if (canAnimate(ghost)) {
-          const fly = ghost.animate(
-            [
-              { transform: 'none', filter: 'brightness(4) drop-shadow(0 0 12px #fff)', opacity: 1 },
-              { transform: 'scale(1.15)', filter: 'brightness(1.6)', offset: 0.12 },
-              {
-                transform: `translate(${dir * 170}%, -150%) rotate(${dir * 300}deg) scale(0.85)`,
-                opacity: 1,
-                offset: 0.55,
-              },
-              {
-                transform: `translate(${dir * 260}%, 40%) rotate(${dir * 620}deg) scale(0.55)`,
-                opacity: 0,
-              },
-            ],
-            { duration: 760, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' },
-          );
-          fly.onfinish = () => ghost.remove();
-        } else {
-          ghost.remove();
-        }
-        system?.add([
-          ...captureBurst(cx * size, cy * size, size),
-          ...shatter(cx * size, cy * size, size, -dx, -dy, 10 + value * 2),
-        ]);
-        const score = document.createElement('span');
-        score.className = 'fx-score';
-        score.textContent = `+${value}`;
-        score.style.cssText = `left:${cx * size}px;top:${(cy - 0.35) * size}px;font-size:${size * 0.38}px`;
-        board.appendChild(score);
-        if (canAnimate(score)) {
-          const rise = score.animate(
-            [
-              { transform: 'translate(-50%, 0) scale(0.4)', opacity: 0 },
-              { transform: 'translate(-50%, -40%) scale(1.25)', opacity: 1, offset: 0.2 },
-              { transform: 'translate(-50%, -140%) scale(1)', opacity: 0 },
-            ],
-            { duration: 950, easing: 'ease-out' },
-          );
-          rise.onfinish = () => score.remove();
-        } else {
-          score.remove();
-        }
-        const amp = 2 + value * 0.9;
-        board.animate(
+      const victim = enPassant
+        ? { type: 'p', color: (moved.color === 'w' ? 'b' : 'w') as 'w' | 'b' }
+        : { type: target!.type, color: target!.color };
+      settle = playAttack({
+        board,
+        stage: stage.current,
+        particles: system,
+        weapon,
+        from: [fx, fy],
+        to: squareCenter(capturedSquare, orientation),
+        victim,
+        attackerEl: piece,
+        defer: later,
+      });
+    } else {
+      // Movimiento normal: cada pieza se mueve con su propia personalidad.
+      const style = MOVE_STYLE[moved.type] ?? MOVE_STYLE.p!;
+      const distance = Math.hypot(dx, dy);
+      const hop = style.hop * (1 + distance * 0.12) * 100;
+      const spin = style.spin ? `rotate(${style.spin}deg)` : '';
+      if (piece && canAnimate(piece)) {
+        piece.animate(
           [
-            { transform: 'translate(0, 0)' },
-            { transform: `translate(${-amp}px, ${amp * 0.5}px)` },
-            { transform: `translate(${amp * 0.8}px, ${-amp * 0.4}px)` },
-            { transform: `translate(${-amp * 0.4}px, 0)` },
-            { transform: 'translate(0, 0)' },
+            { transform: `translate(${dx * 100}%, ${dy * 100}%) scale(1, 1)`, zIndex: 3 },
+            {
+              transform: `translate(${dx * 50}%, ${dy * 50 - hop}%) scale(${style.air}) ${spin} skewX(${style.skew}deg)`,
+              offset: 0.5,
+              zIndex: 3,
+            },
+            { transform: `translate(0, 0) scale(${style.land})`, offset: 0.84, zIndex: 3 },
+            { transform: 'translate(0, -4%) scale(0.96, 1.05)', offset: 0.93, zIndex: 3 },
+            { transform: 'translate(0, 0) scale(1, 1)', zIndex: 3 },
           ],
-          { duration: 260, easing: 'ease-out' },
+          { duration: style.ms, easing: 'cubic-bezier(0.33, 0, 0.2, 1)' },
         );
-      }, impact);
+      }
+      // Estela a lo largo del recorrido y golpe al aterrizar.
+      for (let i = 1; i <= 4; i++) {
+        const k = i / 5;
+        later(
+          () => {
+            const x = (fx + (tx - fx) * k) * size;
+            const y = (fy + (ty - fy) * k) * size;
+            system?.add(
+              style.trail === 'spark'
+                ? shatter(x, y, size, tx - fx, ty - fy, 5)
+                : dustPuff(x, y, size),
+            );
+          },
+          style.ms * k * 0.9,
+        );
+      }
+      later(() => {
+        system?.add(dustPuff(tx * size, ty * size, size));
+        if (style.quake && board.animate) {
+          board.animate(
+            [
+              { transform: 'translate(0,0)' },
+              { transform: `translate(0, ${style.quake}px)` },
+              { transform: `translate(0, ${-style.quake * 0.5}px)` },
+              { transform: 'translate(0,0)' },
+            ],
+            { duration: 200, easing: 'ease-out' },
+          );
+        }
+      }, style.ms * 0.84);
+      settle = style.ms;
+      // Mate sin captura: el atacante dispara su arma contra el rey.
+      if (isMate && loserKing) {
+        const king = squareCenter(loserKing, orientation);
+        later(() => {
+          stage.current?.play(
+            WEAPONS[weapon],
+            { x: tx * size, y: ty * size },
+            { x: king[0] * size, y: king[1] * size },
+            () => {
+              system?.add(captureBurst(king[0] * size, king[1] * size, size * 1.4));
+              play('capture');
+              tap('heavy');
+            },
+          );
+        }, style.ms + 40);
+        settle = style.ms + 40 + WEAPONS[weapon].ms * WEAPONS[weapon].hit;
+      }
     }
 
-    // 3) Coronación: destello y chispas ascendentes.
+    // Coronación.
     if (moved.type === 'p' && (to[1] === '8' || to[1] === '1')) {
-      later(() => system?.add(captureBurst(tx * size, ty * size, size * 1.3)), impact);
+      later(() => system?.add(captureBurst(tx * size, ty * size, size * 1.6)), 300);
     }
 
-    // 4) Jaque mate: el rey derrotado cae y el tablero se sacude.
-    if (chess.isCheckmate()) {
-      const loserKing = chess.findPiece({ type: 'k', color: chess.turn() })[0];
-      later(() => {
-        const king = loserKing
-          ? board.querySelector<HTMLElement>(`[data-square="${loserKing}"] .piece`)
-          : null;
-        if (king && canAnimate(king)) {
-          running.push(
-            king.animate(
-              [
-                { transform: 'rotate(0deg)' },
-                { transform: 'rotate(-12deg) translateY(-6%)', offset: 0.25 },
-                { transform: 'rotate(88deg) translate(18%, 8%)', offset: 0.8 },
-                { transform: 'rotate(80deg) translate(18%, 6%)' },
-              ],
-              { duration: 700, easing: 'cubic-bezier(0.5, 0, 0.7, 1)', fill: 'forwards' },
-            ),
-          );
-        }
-        system?.add(
-          captureBurst(
-            (loserKing ? squareCenter(loserKing, orientation)[0] : tx) * size,
-            ty * size,
-            size * 1.6,
+    // Jaque mate: remate con el rey cayendo y cartel gigante.
+    if (isMate && loserKing) {
+      const kingEl = board.querySelector<HTMLElement>(`[data-square="${loserKing}"] .piece`);
+      later(
+        () =>
+          mateFlourish(
+            board,
+            stage.current,
+            kingEl,
+            squareCenter(loserKing, orientation),
+            system,
+            WEAPONS[weapon].flash,
           ),
-        );
-        board.animate(
-          [
-            { transform: 'translate(0, 0)' },
-            { transform: 'translate(-9px, 3px) rotate(-0.5deg)' },
-            { transform: 'translate(8px, -3px) rotate(0.4deg)' },
-            { transform: 'translate(-5px, 1px)' },
-            { transform: 'translate(0, 0)' },
-          ],
-          { duration: 480, easing: 'ease-out' },
-        );
-      }, impact + 120);
+        settle + 160,
+      );
     }
     return () => {
       timers.forEach(clearTimeout);
@@ -305,7 +360,13 @@ export function Board({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fen]);
 
-  useEffect(() => () => particles.current?.dispose(), []);
+  useEffect(
+    () => () => {
+      particles.current?.dispose();
+      stage.current?.dispose();
+    },
+    [],
+  );
 
   const targets = selected ? (legalByFrom.get(selected) ?? new Set<string>()) : new Set<string>();
 
@@ -412,12 +473,15 @@ export function Board({
           {showCoordinates && col === 0 && <span className="coord rank">{square[1]}</span>}
           {showCoordinates && row === 7 && <span className="coord file">{square[0]}</span>}
           {key && (
-            <img
-              className={`piece${drag?.from === square && drag.moved ? ' dragging-origin' : ''}`}
-              src={PIECE_IMAGES[key]}
-              alt=""
-              draggable={false}
-            />
+            <span
+              className={`piece life-${piece!.type} side-${piece!.color}${drag?.from === square && drag.moved ? ' dragging-origin' : ''}`}
+            >
+              <img src={PIECE_IMAGES[key]} alt="" draggable={false} />
+              <span className="eyes" aria-hidden="true">
+                <i />
+                <i />
+              </span>
+            </span>
           )}
           {isTarget && <span className={piece ? 'target capture' : 'target'} />}
         </button>,
@@ -440,6 +504,7 @@ export function Board({
       >
         {squares}
         <canvas ref={canvasRef} className="fx-layer" aria-hidden="true" />
+        <canvas ref={weaponCanvasRef} className="fx-layer weapon-layer" aria-hidden="true" />
         {arrows.length > 0 && (
           <svg className="arrows" viewBox="0 0 8 8" aria-hidden="true">
             <defs>
