@@ -95,7 +95,8 @@ export function initialProgress(): ProgressData {
   };
 }
 
-const cap = <T>(list: T[], max: number) => (list.length > max ? list.slice(list.length - max) : list);
+const cap = <T>(list: T[], max: number) =>
+  list.length > max ? list.slice(list.length - max) : list;
 
 /**
  * Aplica XP, racha, contadores y retos diarios e insignias. Todas las acciones pasan por aquí.
@@ -160,12 +161,23 @@ export function applyPuzzle(
     ...data,
     stats,
     puzzleRating,
-    ratingHistory: cap([...data.ratingHistory, { date: new Date().toISOString(), rating: Math.round(puzzleRating.rating) }], 500),
+    ratingHistory: cap(
+      [
+        ...data.ratingHistory,
+        { date: new Date().toISOString(), rating: Math.round(puzzleRating.rating) },
+      ],
+      500,
+    ),
     themeStats: recordThemeResult(data.themeStats, puzzle.themes, solved),
     difficulty: recordDifficultyResult(data.difficulty, arm, solved),
     seenPuzzles: cap([...data.seenPuzzles, puzzle.id], 400),
   };
-  return applyActivity(next, xpForPuzzle(solved, puzzle.rating, before), solved ? 'puzzlesSolved' : null, day);
+  return applyActivity(
+    next,
+    xpForPuzzle(solved, puzzle.rating, before),
+    solved ? 'puzzlesSolved' : null,
+    day,
+  );
 }
 
 export function applyGame(data: ProgressData, record: GameRecord, day = today()) {
@@ -184,7 +196,12 @@ export function applyGame(data: ProgressData, record: GameRecord, day = today())
         : data.stats.bestAiEloBeaten,
   };
   const xp = xpForGame(won ? 'win' : drawn ? 'draw' : 'loss', record.opponentElo ?? 1200);
-  return applyActivity({ ...data, stats, games: cap([...data.games, record], 50) }, xp, 'gamesPlayed', day);
+  return applyActivity(
+    { ...data, stats, games: cap([...data.games, record], 50) },
+    xp,
+    'gamesPlayed',
+    day,
+  );
 }
 
 export function applyAnalysis(
@@ -208,7 +225,9 @@ export function applyAnalysis(
       endgame: data.phaseErrors.endgame + phaseErrors.endgame,
     },
     accuracyHistory:
-      accuracy === null ? data.accuracyHistory : cap([...data.accuracyHistory, { date: new Date().toISOString(), accuracy }], 200),
+      accuracy === null
+        ? data.accuracyHistory
+        : cap([...data.accuracyHistory, { date: new Date().toISOString(), accuracy }], 200),
     games: gameId
       ? data.games.map((g) => (g.id === gameId && accuracy !== null ? { ...g, accuracy } : g))
       : data.games,
@@ -216,7 +235,12 @@ export function applyAnalysis(
   return applyActivity(next, XP_REWARDS.analysisRun, 'analysesRun', day);
 }
 
-export function applyOpeningReview(data: ProgressData, cardId: string, quality: number, day = today()) {
+export function applyOpeningReview(
+  data: ProgressData,
+  cardId: string,
+  quality: number,
+  day = today(),
+) {
   const card = data.srsCards[cardId] ?? newCard(cardId);
   const next: ProgressData = {
     ...data,
@@ -258,9 +282,18 @@ interface ProgressStore extends ProgressData {
   toasts: Toast[];
   dismissToast: (id: string) => void;
   pushToast: (toast: Omit<Toast, 'id'>) => void;
-  recordPuzzle: (puzzle: Puzzle, solved: boolean, arm: DifficultyArm, serverRating?: Rating) => ActivityOutcome;
+  recordPuzzle: (
+    puzzle: Puzzle,
+    solved: boolean,
+    arm: DifficultyArm,
+    serverRating?: Rating,
+  ) => ActivityOutcome;
   recordGame: (record: GameRecord) => ActivityOutcome;
-  recordAnalysis: (accuracy: number | null, phaseErrors: Record<GamePhase, number>, gameId?: string) => ActivityOutcome;
+  recordAnalysis: (
+    accuracy: number | null,
+    phaseErrors: Record<GamePhase, number>,
+    gameId?: string,
+  ) => ActivityOutcome;
   recordOpeningReview: (cardId: string, quality: number) => ActivityOutcome;
   recordLesson: (lessonId: string) => ActivityOutcome;
   recordEndgame: (drillId: string) => ActivityOutcome;
@@ -280,11 +313,18 @@ export const useProgress = create<ProgressStore>()(
     (set, get) => {
       const commit = (result: { data: ProgressData; outcome: ActivityOutcome }) => {
         const toasts: Toast[] = [];
-        if (result.outcome.xp > 0) toasts.push({ id: uid(), kind: 'xp', text: 'toast.xp', params: { xp: result.outcome.xp } });
+        if (result.outcome.xp > 0)
+          toasts.push({
+            id: uid(),
+            kind: 'xp',
+            text: 'toast.xp',
+            params: { xp: result.outcome.xp },
+          });
         for (const badge of result.outcome.badges) {
           toasts.push({ id: uid(), kind: 'badge', text: 'toast.badge', params: { badge } });
         }
-        for (const _ of result.outcome.challenges) toasts.push({ id: uid(), kind: 'challenge', text: 'toast.challenge' });
+        for (const _ of result.outcome.challenges)
+          toasts.push({ id: uid(), kind: 'challenge', text: 'toast.challenge' });
         set({ ...result.data, toasts: [...get().toasts, ...toasts].slice(-4) });
         return result.outcome;
       };
@@ -298,7 +338,8 @@ export const useProgress = create<ProgressStore>()(
         recordGame: (record) => commit(applyGame(pickData(get()), record)),
         recordAnalysis: (accuracy, phaseErrors, gameId) =>
           commit(applyAnalysis(pickData(get()), accuracy, phaseErrors, gameId)),
-        recordOpeningReview: (cardId, quality) => commit(applyOpeningReview(pickData(get()), cardId, quality)),
+        recordOpeningReview: (cardId, quality) =>
+          commit(applyOpeningReview(pickData(get()), cardId, quality)),
         recordLesson: (lessonId) => commit(applyLesson(pickData(get()), lessonId)),
         recordEndgame: (drillId) => commit(applyEndgame(pickData(get()), drillId)),
         addPersonalPuzzles: (puzzles) => {
@@ -307,7 +348,8 @@ export const useProgress = create<ProgressStore>()(
           set({ personalPuzzles: cap([...get().personalPuzzles, ...fresh], 100) });
           return fresh.length;
         },
-        removePersonalPuzzle: (id) => set({ personalPuzzles: get().personalPuzzles.filter((p) => p.id !== id) }),
+        removePersonalPuzzle: (id) =>
+          set({ personalPuzzles: get().personalPuzzles.filter((p) => p.id !== id) }),
         importSnapshot: (data) => set({ ...data }),
         reset: () => set({ ...initialProgress(), toasts: [] }),
       };

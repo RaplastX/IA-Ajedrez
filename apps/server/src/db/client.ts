@@ -22,7 +22,9 @@ export interface Database {
   kind: 'postgres' | 'pglite';
 }
 
-export async function connectDatabase(config: Pick<Config, 'DATABASE_URL' | 'PGLITE_DIR'>): Promise<Database> {
+export async function connectDatabase(
+  config: Pick<Config, 'DATABASE_URL' | 'PGLITE_DIR'>,
+): Promise<Database> {
   if (config.DATABASE_URL) {
     const pool = new pg.Pool({ connectionString: config.DATABASE_URL, max: 10 });
     const db = drizzlePg({ client: pool, schema }) as unknown as Db;
@@ -35,9 +37,15 @@ export async function connectDatabase(config: Pick<Config, 'DATABASE_URL' | 'PGL
 }
 
 export async function migrate(db: Db): Promise<string[]> {
-  await db.execute(sql.raw('CREATE TABLE IF NOT EXISTS _migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())'));
+  await db.execute(
+    sql.raw(
+      'CREATE TABLE IF NOT EXISTS _migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())',
+    ),
+  );
   const result = await db.execute<{ id: string }>(sql.raw('SELECT id FROM _migrations'));
-  const rows = (Array.isArray(result) ? result : (result as { rows: { id: string }[] }).rows) as { id: string }[];
+  const rows = (Array.isArray(result) ? result : (result as { rows: { id: string }[] }).rows) as {
+    id: string;
+  }[];
   const done = new Set(rows.map((r) => r.id));
   const applied: string[] = [];
   for (const migration of MIGRATIONS) {

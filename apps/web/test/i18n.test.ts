@@ -7,23 +7,33 @@ import { es } from '../src/i18n/es';
 type Tree = { [k: string]: string | Tree };
 
 function flatten(tree: Tree, prefix = ''): string[] {
-  return Object.entries(tree).flatMap(([k, v]) => (typeof v === 'string' ? [`${prefix}${k}`] : flatten(v, `${prefix}${k}.`)));
+  return Object.entries(tree).flatMap(([k, v]) =>
+    typeof v === 'string' ? [`${prefix}${k}`] : flatten(v, `${prefix}${k}.`),
+  );
 }
 
 function lookup(tree: Tree, path: string): string | Tree | undefined {
-  return path.split('.').reduce<string | Tree | undefined>((node, part) => (node && typeof node === 'object' ? node[part] : undefined), tree);
+  return path
+    .split('.')
+    .reduce<string | Tree | undefined>(
+      (node, part) => (node && typeof node === 'object' ? node[part] : undefined),
+      tree,
+    );
 }
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
     const full = join(dir, name);
-    if (statSync(full).isDirectory()) return name === 'i18n' || name === 'data' ? [] : sourceFiles(full);
+    if (statSync(full).isDirectory())
+      return name === 'i18n' || name === 'data' ? [] : sourceFiles(full);
     return /\.(ts|tsx)$/.test(name) ? [full] : [];
   });
 }
 
-const src = join(import.meta.dirname, "..", "src");
-const code = sourceFiles(src).map((f) => readFileSync(f, 'utf8')).join('\n');
+const src = join(import.meta.dirname, '..', 'src');
+const code = sourceFiles(src)
+  .map((f) => readFileSync(f, 'utf8'))
+  .join('\n');
 
 describe('traducciones', () => {
   it('español e inglés tienen exactamente las mismas claves', () => {

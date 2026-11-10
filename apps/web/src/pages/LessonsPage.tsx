@@ -38,7 +38,13 @@ export default function LessonsPage() {
         </div>
         <div className="grid cols-2">
           {LESSONS.map((l) => (
-            <button key={l.id} type="button" className="card" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => open(l)}>
+            <button
+              key={l.id}
+              type="button"
+              className="card"
+              style={{ textAlign: 'left', cursor: 'pointer' }}
+              onClick={() => open(l)}
+            >
               <div className="spread">
                 <strong>
                   {completed.includes(l.id) ? '✅ ' : ''}
@@ -119,14 +125,23 @@ export default function LessonsPage() {
           <section className="card">
             <p>{step.text[locale]}</p>
             {isTask && (
-              <p className={`status ${result === 'good' ? 'good' : result === 'bad' ? 'bad' : ''}`} aria-live="polite" data-testid="lesson-status">
+              <p
+                className={`status ${result === 'good' ? 'good' : result === 'bad' ? 'bad' : ''}`}
+                aria-live="polite"
+                data-testid="lesson-status"
+              >
                 {result === 'idle' && t('lessons.findMove')}
                 {result === 'good' && (step.success?.[locale] ?? t('lessons.correct'))}
                 {result === 'bad' && t('lessons.tryAgain')}
               </p>
             )}
             <div className="row" style={{ marginTop: 12 }}>
-              <button type="button" className="btn primary" onClick={advance} disabled={!canContinue}>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={advance}
+                disabled={!canContinue}
+              >
                 {isLast ? t('lessons.finish') : t('lessons.next')}
               </button>
               {isLast && lesson.practiceTheme && result === 'good' && (

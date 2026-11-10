@@ -33,8 +33,8 @@ export default function PlayPage() {
   const [thinking, setThinking] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [, rerender] = useReducer((x: number) => x + 1, 0);
-  const turnStartedAt = useRef(Date.now());
-  const thinkTimes = useRef<number[]>([]);
+  const turnStartedAt = useRef(0);
+  const [thinkTimes, setThinkTimes] = useState<number[]>([]);
   const cancelled = useRef(false);
 
   useEffect(() => () => void (cancelled.current = true), []);
@@ -63,7 +63,12 @@ export default function PlayPage() {
     track('game_finished', { mode: 'ai', elo: state.elo, result: outcome.score });
     if (token) {
       api
-        .uploadGame({ pgn: record.pgn, result: record.result, mode: 'ai', opponent: record.opponent })
+        .uploadGame({
+          pgn: record.pgn,
+          result: record.result,
+          mode: 'ai',
+          opponent: record.opponent,
+        })
         .catch(() => undefined);
     }
   }
@@ -71,10 +76,13 @@ export default function PlayPage() {
   function checkEnd(state: GameState): boolean {
     const chess = state.chess;
     if (!chess.isGameOver()) return false;
-    if (chess.isCheckmate()) finish(state, { score: chess.turn() === 'w' ? '0-1' : '1-0', reason: 'checkmate' });
+    if (chess.isCheckmate())
+      finish(state, { score: chess.turn() === 'w' ? '0-1' : '1-0', reason: 'checkmate' });
     else if (chess.isStalemate()) finish(state, { score: '1/2-1/2', reason: 'stalemate' });
-    else if (chess.isThreefoldRepetition()) finish(state, { score: '1/2-1/2', reason: 'repetition' });
-    else if (chess.isInsufficientMaterial()) finish(state, { score: '1/2-1/2', reason: 'material' });
+    else if (chess.isThreefoldRepetition())
+      finish(state, { score: '1/2-1/2', reason: 'repetition' });
+    else if (chess.isInsufficientMaterial())
+      finish(state, { score: '1/2-1/2', reason: 'material' });
     else finish(state, { score: '1/2-1/2', reason: 'fiftyMoves' });
     return true;
   }
@@ -86,7 +94,10 @@ export default function PlayPage() {
     const startedAt = Date.now();
     try {
       await engine.configure(strength.uciOptions);
-      const search = await engine.search(state.chess.fen(), { ...strength.go, multipv: strength.multipv });
+      const search = await engine.search(state.chess.fen(), {
+        ...strength.go,
+        multipv: strength.multipv,
+      });
       let uci = search.bestmove;
       if (strength.temperatureCp > 0 && search.lines.length > 1) {
         const candidates = search.lines
@@ -111,7 +122,7 @@ export default function PlayPage() {
   async function start() {
     const playerColor = colorChoice === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : colorChoice;
     const state: GameState = { id: uid(), chess: new Chess(), playerColor, elo };
-    thinkTimes.current = [];
+    setThinkTimes([]);
     setResult(null);
     setGame(state);
     track('game_started', { mode: 'ai', elo });
@@ -127,7 +138,8 @@ export default function PlayPage() {
     } catch {
       return;
     }
-    thinkTimes.current.push(Date.now() - turnStartedAt.current);
+    const elapsed = Date.now() - turnStartedAt.current;
+    setThinkTimes((times) => [...times, elapsed]);
     rerender();
     if (!checkEnd(game)) void engineMove(game);
   }
@@ -138,7 +150,7 @@ export default function PlayPage() {
     if (history.length === 0) return;
     game.chess.undo();
     if (game.chess.turn() !== game.playerColor) game.chess.undo();
-    thinkTimes.current.pop();
+    setThinkTimes((times) => times.slice(0, -1));
     rerender();
   }
 
@@ -149,8 +161,8 @@ export default function PlayPage() {
 
   const history = game?.chess.history({ verbose: true }) ?? [];
   const last = history[history.length - 1];
-  const avgThink = thinkTimes.current.length
-    ? thinkTimes.current.reduce((a, b) => a + b, 0) / thinkTimes.current.length / 1000
+  const avgThink = thinkTimes.length
+    ? thinkTimes.reduce((a, b) => a + b, 0) / thinkTimes.length / 1000
     : null;
 
   return (
@@ -187,8 +199,15 @@ export default function PlayPage() {
                   aria-label={t('play.strength')}
                 />
               </label>
-              <p className="small muted">{t(elo < 1320 ? 'play.humanizedHelp' : 'play.uciEloHelp')}</p>
-              <div className="row" role="radiogroup" aria-label={t('play.color')} style={{ margin: '8px 0 12px' }}>
+              <p className="small muted">
+                {t(elo < 1320 ? 'play.humanizedHelp' : 'play.uciEloHelp')}
+              </p>
+              <div
+                className="row"
+                role="radiogroup"
+                aria-label={t('play.color')}
+                style={{ margin: '8px 0 12px' }}
+              >
                 {(['w', 'b', 'random'] as const).map((c) => (
                   <button
                     key={c}
@@ -210,12 +229,15 @@ export default function PlayPage() {
           {game && (
             <section className="card">
               <div className="spread">
-                <h2 style={{ margin: 0 }}>
-                  {t('play.vs', { elo: game.elo })}
-                </h2>
+                <h2 style={{ margin: 0 }}>{t('play.vs', { elo: game.elo })}</h2>
                 <span className="chip">{t(`play.colors.${game.playerColor}`)}</span>
               </div>
-              <p className="status" aria-live="polite" data-testid="play-status" style={{ marginTop: 12 }}>
+              <p
+                className="status"
+                aria-live="polite"
+                data-testid="play-status"
+                style={{ marginTop: 12 }}
+              >
                 {result
                   ? t(`play.result.${result.reason}`, { score: result.score })
                   : thinking
@@ -226,12 +248,19 @@ export default function PlayPage() {
               </p>
               <MoveList moves={history.map((m) => ({ san: m.san }))} current={history.length} />
               {avgThink !== null && (
-                <p className="small muted">{t('play.avgThink', { seconds: avgThink.toFixed(1) })}</p>
+                <p className="small muted">
+                  {t('play.avgThink', { seconds: avgThink.toFixed(1) })}
+                </p>
               )}
               <div className="row" style={{ marginTop: 12 }}>
                 {!result && (
                   <>
-                    <button type="button" className="btn" onClick={takeback} disabled={thinking || history.length === 0}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={takeback}
+                      disabled={thinking || history.length === 0}
+                    >
                       {t('play.takeback')}
                     </button>
                     <button type="button" className="btn danger" onClick={resign}>
@@ -246,13 +275,23 @@ export default function PlayPage() {
                       className="btn primary"
                       onClick={() =>
                         navigate('/analysis', {
-                          state: { pgn: game.chess.pgn(), playerColor: game.playerColor, gameId: game.id },
+                          state: {
+                            pgn: game.chess.pgn(),
+                            playerColor: game.playerColor,
+                            gameId: game.id,
+                          },
                         })
                       }
                     >
                       {t('play.analyze')}
                     </button>
-                    <button type="button" className="btn" onClick={() => downloadText(`partida-${game.id.slice(0, 8)}.pgn`, game.chess.pgn())}>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() =>
+                        downloadText(`partida-${game.id.slice(0, 8)}.pgn`, game.chess.pgn())
+                      }
+                    >
                       {t('common.downloadPgn')}
                     </button>
                   </>

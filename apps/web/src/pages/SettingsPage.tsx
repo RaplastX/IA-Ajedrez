@@ -6,11 +6,28 @@ import { pickData, useProgress } from '../store/progress';
 import { useSettings, type BoardTheme, type Language } from '../store/settings';
 
 const LICENSES = [
-  { name: 'Stockfish 19 (stockfish.js)', license: 'GPL-3.0', url: 'https://github.com/nmrugg/stockfish.js', extra: '/engine/COPYING-stockfish.txt' },
-  { name: 'Piezas Cburnett (Wikimedia Commons)', license: 'BSD / GPL / GFDL', url: 'https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces' },
+  {
+    name: 'Stockfish 19 (stockfish.js)',
+    license: 'GPL-3.0',
+    url: 'https://github.com/nmrugg/stockfish.js',
+    extra: '/engine/COPYING-stockfish.txt',
+  },
+  {
+    name: 'Piezas Cburnett (Wikimedia Commons)',
+    license: 'BSD / GPL / GFDL',
+    url: 'https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces',
+  },
   { name: 'Lichess puzzle database', license: 'CC0', url: 'https://database.lichess.org/#puzzles' },
-  { name: 'lichess-org/chess-openings', license: 'CC0', url: 'https://github.com/lichess-org/chess-openings' },
-  { name: 'Lichess tablebase API (Syzygy)', license: 'API pública', url: 'https://tablebase.lichess.ovh' },
+  {
+    name: 'lichess-org/chess-openings',
+    license: 'CC0',
+    url: 'https://github.com/lichess-org/chess-openings',
+  },
+  {
+    name: 'Lichess tablebase API (Syzygy)',
+    license: 'API pública',
+    url: 'https://tablebase.lichess.ovh',
+  },
   { name: 'chess.js', license: 'BSD-2-Clause', url: 'https://github.com/jhlywa/chess.js' },
   { name: 'React, React Router, i18next, Zustand', license: 'MIT', url: 'https://react.dev' },
 ];
@@ -20,7 +37,12 @@ export default function SettingsPage() {
   const settings = useSettings();
   const resetProgress = useProgress((s) => s.reset);
   const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [form, setForm] = useState({ email: '', password: '', displayName: '', acceptTerms: false });
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+    displayName: '',
+    acceptTerms: false,
+  });
   const [status, setStatus] = useState<{ kind: 'good' | 'bad'; text: string } | null>(null);
 
   async function submit(e: FormEvent) {
@@ -32,10 +54,18 @@ export default function SettingsPage() {
           ? await api.login({ email: form.email, password: form.password })
           : await api.register({ ...form, locale: i18n.language });
       settings.setSession(session.token, session.user);
-      setStatus({ kind: 'good', text: t('settings.account.welcome', { name: session.user.displayName }) });
+      setStatus({
+        kind: 'good',
+        text: t('settings.account.welcome', { name: session.user.displayName }),
+      });
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'unknown';
-      setStatus({ kind: 'bad', text: t(`settings.account.errors.${code}`, { defaultValue: t('settings.account.errors.unknown') }) });
+      setStatus({
+        kind: 'bad',
+        text: t(`settings.account.errors.${code}`, {
+          defaultValue: t('settings.account.errors.unknown'),
+        }),
+      });
     }
   }
 
@@ -43,7 +73,11 @@ export default function SettingsPage() {
     const local = pickData(useProgress.getState());
     let remote: unknown = null;
     if (settings.token) remote = await api.exportData().catch(() => null);
-    downloadText('ia-ajedrez-mis-datos.json', JSON.stringify({ exportedAt: new Date().toISOString(), local, remote }, null, 2), 'application/json');
+    downloadText(
+      'ia-ajedrez-mis-datos.json',
+      JSON.stringify({ exportedAt: new Date().toISOString(), local, remote }, null, 2),
+      'application/json',
+    );
   }
 
   async function deleteEverything() {
@@ -60,7 +94,10 @@ export default function SettingsPage() {
       window.location.assign(url);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'unknown';
-      setStatus({ kind: 'bad', text: t(`settings.premium.errors.${code === 'payments_disabled' ? code : 'unknown'}`) });
+      setStatus({
+        kind: 'bad',
+        text: t(`settings.premium.errors.${code === 'payments_disabled' ? code : 'unknown'}`),
+      });
     }
   }
 
@@ -77,14 +114,21 @@ export default function SettingsPage() {
           <div className="panel">
             <label className="field">
               <span>{t('settings.language')}</span>
-              <select value={settings.language} onChange={(e) => settings.setLanguage(e.target.value as Language)} data-testid="language-select">
+              <select
+                value={settings.language}
+                onChange={(e) => settings.setLanguage(e.target.value as Language)}
+                data-testid="language-select"
+              >
                 <option value="es">Español</option>
                 <option value="en">English</option>
               </select>
             </label>
             <label className="field">
               <span>{t('settings.boardTheme')}</span>
-              <select value={settings.boardTheme} onChange={(e) => settings.setBoardTheme(e.target.value as BoardTheme)}>
+              <select
+                value={settings.boardTheme}
+                onChange={(e) => settings.setBoardTheme(e.target.value as BoardTheme)}
+              >
                 {(['green', 'brown', 'blue'] as const).map((th) => (
                   <option key={th} value={th}>
                     {t(`settings.themes.${th}`)}
@@ -93,7 +137,11 @@ export default function SettingsPage() {
               </select>
             </label>
             <label className="row">
-              <input type="checkbox" checked={settings.showCoordinates} onChange={(e) => settings.setShowCoordinates(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={settings.showCoordinates}
+                onChange={(e) => settings.setShowCoordinates(e.target.checked)}
+              />
               <span>{t('settings.coordinates')}</span>
             </label>
           </div>
@@ -116,7 +164,13 @@ export default function SettingsPage() {
             <form className="panel" onSubmit={(e) => void submit(e)}>
               <div className="row" role="tablist">
                 {(['login', 'register'] as const).map((m) => (
-                  <button key={m} type="button" className="chip" aria-pressed={mode === m} onClick={() => setMode(m)}>
+                  <button
+                    key={m}
+                    type="button"
+                    className="chip"
+                    aria-pressed={mode === m}
+                    onClick={() => setMode(m)}
+                  >
                     {t(`settings.account.${m}`)}
                   </button>
                 ))}
@@ -124,12 +178,25 @@ export default function SettingsPage() {
               {mode === 'register' && (
                 <label className="field">
                   <span>{t('settings.account.displayName')}</span>
-                  <input type="text" required minLength={3} maxLength={24} value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} />
+                  <input
+                    type="text"
+                    required
+                    minLength={3}
+                    maxLength={24}
+                    value={form.displayName}
+                    onChange={(e) => setForm({ ...form, displayName: e.target.value })}
+                  />
                 </label>
               )}
               <label className="field">
                 <span>{t('settings.account.email')}</span>
-                <input type="email" required autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
               </label>
               <label className="field">
                 <span>{t('settings.account.password')}</span>
@@ -144,7 +211,12 @@ export default function SettingsPage() {
               </label>
               {mode === 'register' && (
                 <label className="row small">
-                  <input type="checkbox" required checked={form.acceptTerms} onChange={(e) => setForm({ ...form, acceptTerms: e.target.checked })} />
+                  <input
+                    type="checkbox"
+                    required
+                    checked={form.acceptTerms}
+                    onChange={(e) => setForm({ ...form, acceptTerms: e.target.checked })}
+                  />
                   <span>{t('settings.account.acceptTerms')}</span>
                 </label>
               )}
@@ -163,7 +235,12 @@ export default function SettingsPage() {
         <section className="card">
           <h2>⭐ {t('settings.premium.title')}</h2>
           <p className="small muted">{t('settings.premium.body')}</p>
-          <button type="button" className="btn primary" disabled={!settings.user || settings.user.isGuest || settings.user.isPremium} onClick={() => void goPremium()}>
+          <button
+            type="button"
+            className="btn primary"
+            disabled={!settings.user || settings.user.isGuest || settings.user.isPremium}
+            onClick={() => void goPremium()}
+          >
             {settings.user?.isPremium ? t('settings.premium.active') : t('settings.premium.cta')}
           </button>
         </section>
@@ -175,7 +252,9 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.analyticsConsent === 'granted'}
-              onChange={(e) => settings.setAnalyticsConsent(e.target.checked ? 'granted' : 'denied')}
+              onChange={(e) =>
+                settings.setAnalyticsConsent(e.target.checked ? 'granted' : 'denied')
+              }
             />
             <span>{t('settings.privacy.analytics')}</span>
           </label>

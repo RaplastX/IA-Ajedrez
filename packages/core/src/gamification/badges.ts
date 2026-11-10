@@ -69,7 +69,12 @@ export const BADGES: readonly BadgeDefinition[] = [
   { id: 'endgameTechnique', icon: 'king', tier: 'silver', earned: (s) => s.endgamesCompleted >= 5 },
   { id: 'analyst', icon: 'search', tier: 'bronze', earned: (s) => s.analysesRun >= 10 },
   { id: 'socialPlayer', icon: 'users', tier: 'bronze', earned: (s) => s.multiplayerGames >= 1 },
-  { id: 'dailyHabit', icon: 'calendar', tier: 'silver', earned: (s) => s.dailyChallengesCompleted >= 10 },
+  {
+    id: 'dailyHabit',
+    icon: 'calendar',
+    tier: 'silver',
+    earned: (s) => s.dailyChallengesCompleted >= 10,
+  },
 ];
 
 /** Devuelve las insignias recién conseguidas (no incluidas en `alreadyEarned`). */

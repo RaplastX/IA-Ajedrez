@@ -48,7 +48,8 @@ function useServerSync() {
       .getProgress()
       .then(({ data, updatedAt: remoteUpdated }) => {
         const local = useProgress.getState().updatedAt;
-        if (data && remoteUpdated && remoteUpdated > local) useProgress.getState().importSnapshot(data);
+        if (data && remoteUpdated && remoteUpdated > local)
+          useProgress.getState().importSnapshot(data);
       })
       .catch(() => undefined);
   }, [token]);

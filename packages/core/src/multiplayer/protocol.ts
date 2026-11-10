@@ -39,7 +39,12 @@ export function clockAfterMove(clock: ClockState, now: number, incrementMs: numb
   const remaining = clockRemaining(clock, now);
   const mover = clock.turn;
   const started = clock.runningSince !== null;
-  const next: ClockState = { ...clock, ...remaining, turn: mover === 'w' ? 'b' : 'w', runningSince: now };
+  const next: ClockState = {
+    ...clock,
+    ...remaining,
+    turn: mover === 'w' ? 'b' : 'w',
+    runningSince: now,
+  };
   if (started) next[mover] += incrementMs;
   return next;
 }
@@ -48,7 +53,8 @@ export function formatClock(ms: number): string {
   const total = Math.ceil(ms / 1000);
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
-  if (ms < 10_000) return `${minutes}:${String(seconds).padStart(2, '0')}.${Math.floor((ms % 1000) / 100)}`;
+  if (ms < 10_000)
+    return `${minutes}:${String(seconds).padStart(2, '0')}.${Math.floor((ms % 1000) / 100)}`;
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
@@ -83,7 +89,15 @@ export type ServerMessage =
       clock: ClockState;
       serverNow: number;
     }
-  | { t: 'move'; gameId: string; uci: string; san: string; fen: string; clock: ClockState; serverNow: number }
+  | {
+      t: 'move';
+      gameId: string;
+      uci: string;
+      san: string;
+      fen: string;
+      clock: ClockState;
+      serverNow: number;
+    }
   | { t: 'end'; gameId: string; result: '1-0' | '0-1' | '1/2-1/2'; reason: EndReason; pgn: string }
   | { t: 'chat'; gameId: string; from: string; text: string }
   | { t: 'error'; code: string }
@@ -103,19 +117,26 @@ export function parseClientMessage(raw: string): ClientMessage | null {
   const m = data as Record<string, unknown>;
   switch (m.t) {
     case 'seek':
-      return (TIME_CONTROLS as readonly unknown[]).includes(m.tc) ? { t: 'seek', tc: m.tc as TimeControl } : null;
+      return (TIME_CONTROLS as readonly unknown[]).includes(m.tc)
+        ? { t: 'seek', tc: m.tc as TimeControl }
+        : null;
     case 'cancel':
     case 'ping':
       return { t: m.t };
     case 'move':
-      return typeof m.gameId === 'string' && typeof m.uci === 'string' && /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m.uci)
+      return typeof m.gameId === 'string' &&
+        typeof m.uci === 'string' &&
+        /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(m.uci)
         ? { t: 'move', gameId: m.gameId, uci: m.uci }
         : null;
     case 'resign':
       return typeof m.gameId === 'string' ? { t: 'resign', gameId: m.gameId } : null;
     case 'chat': {
       if (typeof m.gameId !== 'string' || typeof m.text !== 'string') return null;
-      const text = m.text.replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, MAX_CHAT);
+      const text = m.text
+        .replace(/[\u0000-\u001f\u007f]/g, '')
+        .trim()
+        .slice(0, MAX_CHAT);
       return text ? { t: 'chat', gameId: m.gameId, text } : null;
     }
     default:

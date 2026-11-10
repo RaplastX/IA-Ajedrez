@@ -1,6 +1,8 @@
 import type { es } from './es';
 
-type DeepStringRecord<T> = { [K in keyof T]: T[K] extends string ? string : DeepStringRecord<T[K]> };
+type DeepStringRecord<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepStringRecord<T[K]>;
+};
 
 export const en: DeepStringRecord<typeof es> = {
   nav: {
@@ -42,7 +44,10 @@ export const en: DeepStringRecord<typeof es> = {
     bn: 'black knight',
     bp: 'black pawn',
   },
-  engine: { unsupported: 'Your browser does not support WebAssembly or Web Workers, so the engine cannot run.' },
+  engine: {
+    unsupported:
+      'Your browser does not support WebAssembly or Web Workers, so the engine cannot run.',
+  },
   charts: { noData: 'No data yet.', showTable: 'Show as table' },
   home: {
     title: 'Hi! Ready to train?',
@@ -191,7 +196,8 @@ export const en: DeepStringRecord<typeof es> = {
     you: 'You',
     newGame: 'New game',
     strength: 'Strength',
-    humanizedHelp: 'Below 1320 Elo the AI chooses among several candidate moves, making "human" mistakes.',
+    humanizedHelp:
+      'Below 1320 Elo the AI chooses among several candidate moves, making "human" mistakes.',
     uciEloHelp: 'From 1320 Elo, Stockfish’s official strength limiter (UCI_Elo) is used.',
     color: 'Colour',
     colors: { w: 'White', b: 'Black', random: 'Random' },
@@ -215,8 +221,12 @@ export const en: DeepStringRecord<typeof es> = {
   },
   analysis: {
     title: 'Game analysis',
-    subtitle: 'Stockfish reviews every move, computes your accuracy and turns your mistakes into exercises.',
-    errors: { empty: 'The PGN is empty or has no moves.', invalid: 'Could not read the PGN. Check that the moves are legal.' },
+    subtitle:
+      'Stockfish reviews every move, computes your accuracy and turns your mistakes into exercises.',
+    errors: {
+      empty: 'The PGN is empty or has no moves.',
+      invalid: 'Could not read the PGN. Check that the moves are legal.',
+    },
     puzzlesCreated_one: '{{count}} exercise created from your mistakes',
     puzzlesCreated_other: '{{count}} exercises created from your mistakes',
     evalBar: 'Evaluation {{value}}',
@@ -278,7 +288,8 @@ export const en: DeepStringRecord<typeof es> = {
     showSolution: 'View solution',
     next: 'Next puzzle',
     source: 'Source (Lichess, CC0):',
-    adaptiveHelp: 'Difficulty adjusts itself: a multi-armed bandit (Thompson sampling) picks puzzles you solve about 70% of the time, where you learn the most.',
+    adaptiveHelp:
+      'Difficulty adjusts itself: a multi-armed bandit (Thompson sampling) picks puzzles you solve about 70% of the time, where you learn the most.',
   },
   openings: {
     title: 'Openings',
@@ -300,7 +311,8 @@ export const en: DeepStringRecord<typeof es> = {
   },
   endgames: {
     title: 'Endgames',
-    subtitle: 'Theoretical endgames verified with the Syzygy tablebase: the opponent plays perfectly.',
+    subtitle:
+      'Theoretical endgames verified with the Syzygy tablebase: the opponent plays perfectly.',
     goalWin: 'Goal: win',
     goalDraw: 'Goal: hold the draw',
     back: 'Endgames',
@@ -406,7 +418,7 @@ export const en: DeepStringRecord<typeof es> = {
       not_your_turn: 'It is not your turn.',
     },
     you: 'you',
-    connection: { idle: 'Offline', connecting: 'Connecting…', open: 'Connected', closed: 'Offline' },
+    connection: { connecting: 'Connecting…', open: 'Connected', closed: 'Offline' },
     seek: 'Find a game',
     searching: 'Looking for an opponent ({{tc}})…',
     find: 'Find opponent',
@@ -456,7 +468,10 @@ export const en: DeepStringRecord<typeof es> = {
       body: 'A generative AI coach that explains your moves in plain language. Secure payment with Stripe; cancel any time.',
       cta: 'Go Premium',
       active: 'Premium active',
-      errors: { payments_disabled: 'Payments are not configured on this server.', unknown: 'Could not start the payment.' },
+      errors: {
+        payments_disabled: 'Payments are not configured on this server.',
+        unknown: 'Could not start the payment.',
+      },
     },
     privacy: {
       title: 'Privacy and data (GDPR)',
@@ -464,7 +479,8 @@ export const en: DeepStringRecord<typeof es> = {
       analytics: 'Allow anonymous analytics',
       export: 'Download my data',
       delete: 'Delete my data and account',
-      confirmDelete: 'Are you sure? Your local progress and your server account will be deleted. This cannot be undone.',
+      confirmDelete:
+        'Are you sure? Your local progress and your server account will be deleted. This cannot be undone.',
       deleted: 'Your data has been deleted.',
     },
     licenses: {

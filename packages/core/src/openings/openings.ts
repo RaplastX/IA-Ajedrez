@@ -32,7 +32,10 @@ export function buildOpeningIndex(entries: OpeningEntry[]): OpeningIndex {
 }
 
 /** Apertura más específica alcanzada por una secuencia de posiciones (FEN tras cada jugada). */
-export function detectOpening(fens: string[], index: OpeningIndex): { entry: OpeningEntry; ply: number } | null {
+export function detectOpening(
+  fens: string[],
+  index: OpeningIndex,
+): { entry: OpeningEntry; ply: number } | null {
   let found: { entry: OpeningEntry; ply: number } | null = null;
   fens.forEach((fen, i) => {
     const entry = index.get(positionKey(fen));

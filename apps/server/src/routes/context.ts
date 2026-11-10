@@ -21,6 +21,9 @@ export interface AppContext {
 export function parseBody<T>(schema: ZodType<T>, body: unknown, reply: FastifyReply): T | null {
   const result = schema.safeParse(body);
   if (result.success) return result.data;
-  void reply.code(400).send({ error: 'validation', details: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`) });
+  void reply.code(400).send({
+    error: 'validation',
+    details: result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+  });
   return null;
 }

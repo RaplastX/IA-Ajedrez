@@ -4,13 +4,7 @@
  */
 
 export type MoveClass =
-  | 'book'
-  | 'best'
-  | 'excellent'
-  | 'good'
-  | 'inaccuracy'
-  | 'mistake'
-  | 'blunder';
+  'book' | 'best' | 'excellent' | 'good' | 'inaccuracy' | 'mistake' | 'blunder';
 
 export const MOVE_CLASSES: readonly MoveClass[] = [
   'book',

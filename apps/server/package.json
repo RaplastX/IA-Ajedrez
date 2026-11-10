@@ -19,7 +19,7 @@
     "esbuild": "^0.28.2",
     "stockfish": "^19.0.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2",
+    "typescript": "~6.0.3",
     "vitest": "^5.1.0",
     "ws": "^8.22.2"
   },
@@ -31,6 +31,7 @@
     "@fastify/jwt": "^10.2.7",
     "@fastify/rate-limit": "^11.2.2",
     "@fastify/websocket": "^11.3.7",
+    "@ia-ajedrez/core": "*",
     "chess.js": "^1.4.0",
     "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.8",

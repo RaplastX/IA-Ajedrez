@@ -7,5 +7,7 @@ const config = loadConfig();
 const database = await connectDatabase(config);
 const applied = await migrate(database.db);
 const seeded = await seedPuzzles(database.db);
-console.log(`Migraciones aplicadas: ${applied.join(', ') || 'ninguna'} · puzzles cargados: ${seeded}`);
+console.log(
+  `Migraciones aplicadas: ${applied.join(', ') || 'ninguna'} · puzzles cargados: ${seeded}`,
+);
 await database.close();

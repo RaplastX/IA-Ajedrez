@@ -30,7 +30,9 @@ import {
 
 describe('PGN', () => {
   it('importa cabeceras y jugadas', () => {
-    const game = parsePgn('[White "Ana"]\n[Black "Luis"]\n[Result "1-0"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0');
+    const game = parsePgn(
+      '[White "Ana"]\n[Black "Luis"]\n[Result "1-0"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0',
+    );
     expect(game.headers.White).toBe('Ana');
     expect(game.result).toBe('1-0');
     expect(game.moves.map((m) => m.uci)).toEqual(['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1b5', 'a7a6']);
@@ -43,7 +45,10 @@ describe('PGN', () => {
   });
 
   it('exporta desde UCI o SAN con comentarios y vuelve a importar', () => {
-    const pgn = buildPgn(['e2e4', 'e5', 'g1f3'], { headers: { White: 'Yo' }, comments: { 2: 'Simétrica' } });
+    const pgn = buildPgn(['e2e4', 'e5', 'g1f3'], {
+      headers: { White: 'Yo' },
+      comments: { 2: 'Simétrica' },
+    });
     expect(pgn).toContain('[White "Yo"]');
     expect(pgn).toContain('{Simétrica}');
     expect(parsePgn(pgn).moves).toHaveLength(3);
@@ -57,10 +62,13 @@ describe('PGN', () => {
   });
 
   it('convierte variantes UCI a SAN', () => {
-    expect(uciLineToSan('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', ['g1f3', 'g8f6', 'zz'])).toEqual([
-      'Nf3',
-      'Nf6',
-    ]);
+    expect(
+      uciLineToSan('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', [
+        'g1f3',
+        'g8f6',
+        'zz',
+      ]),
+    ).toEqual(['Nf3', 'Nf6']);
   });
 });
 
@@ -98,7 +106,11 @@ describe('puzzles (formato Lichess)', () => {
   });
 
   it('elige puzzles cerca del rating objetivo', () => {
-    const pool = [600, 1000, 1500, 2000, 2500].map((rating, i) => ({ ...puzzle, id: String(i), rating }));
+    const pool = [600, 1000, 1500, 2000, 2500].map((rating, i) => ({
+      ...puzzle,
+      id: String(i),
+      rating,
+    }));
     expect(pickPuzzle(pool, 1950, { random: () => 0 })!.rating).toBe(2000);
     expect(pickPuzzle(pool, 1950, { exclude: new Set(['0', '1', '2', '3', '4']) })).toBeNull();
   });
@@ -141,14 +153,21 @@ describe('tutor por reglas', () => {
       bestUci: 'd5c7',
       bestPv: ['d5c7', 'e8d7', 'c7a8'],
     });
-    expect(facts.find((f) => f.code === 'bestWasFork')).toMatchObject({ san: 'Nc7+', targets: ['ra8', 'ke8'] });
+    expect(facts.find((f) => f.code === 'bestWasFork')).toMatchObject({
+      san: 'Nc7+',
+      targets: ['ra8', 'ke8'],
+    });
     expect(facts.find((f) => f.code === 'bestWinsMaterial')).toMatchObject({ pawns: 5 });
   });
 
   it('calcula el material tras una variante con capturas', () => {
     // 1...Qg5?? 2.Nxg5: las negras pierden la dama.
     expect(
-      materialAfterLine('rnb1kbnr/pppp1ppp/8/4p1q1/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3', ['f3g5'], 'b'),
+      materialAfterLine(
+        'rnb1kbnr/pppp1ppp/8/4p1q1/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
+        ['f3g5'],
+        'b',
+      ),
     ).toBe(-9);
   });
 });
@@ -167,7 +186,13 @@ describe('aperturas', () => {
   });
 
   it('genera pasos de entrenamiento para el color del usuario', () => {
-    const steps = drillSteps({ id: 'ruy', name: 'Ruy', eco: 'C60', color: 'w', moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'] });
+    const steps = drillSteps({
+      id: 'ruy',
+      name: 'Ruy',
+      eco: 'C60',
+      color: 'w',
+      moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5'],
+    });
     expect(steps.map((s) => s.expectedSan)).toEqual(['e4', 'Nf3', 'Bb5']);
     expect(steps[1]!.cardId).toBe('ruy:2');
   });

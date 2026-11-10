@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { clockAfterMove, clockRemaining, createClock, formatClock, parseClientMessage, parseTimeControl } from '../src/index.js';
+import {
+  clockAfterMove,
+  clockRemaining,
+  createClock,
+  formatClock,
+  parseClientMessage,
+  parseTimeControl,
+} from '../src/index.js';
 
 describe('reloj', () => {
   it('arranca tras la primera jugada y aplica incremento', () => {
@@ -23,9 +30,15 @@ describe('mensajes del cliente', () => {
   it('valida y sanea', () => {
     expect(parseClientMessage('{"t":"seek","tc":"3+2"}')).toEqual({ t: 'seek', tc: '3+2' });
     expect(parseClientMessage('{"t":"seek","tc":"90+0"}')).toBeNull();
-    expect(parseClientMessage('{"t":"move","gameId":"g","uci":"e7e8q"}')).toMatchObject({ uci: 'e7e8q' });
+    expect(parseClientMessage('{"t":"move","gameId":"g","uci":"e7e8q"}')).toMatchObject({
+      uci: 'e7e8q',
+    });
     expect(parseClientMessage('{"t":"move","gameId":"g","uci":"e9e8"}')).toBeNull();
-    expect(parseClientMessage('{"t":"chat","gameId":"g","text":"  hola\\u0007  "}')).toEqual({ t: 'chat', gameId: 'g', text: 'hola' });
+    expect(parseClientMessage('{"t":"chat","gameId":"g","text":"  hola\\u0007  "}')).toEqual({
+      t: 'chat',
+      gameId: 'g',
+      text: 'hola',
+    });
     expect(parseClientMessage('{"t":"chat","gameId":"g","text":"   "}')).toBeNull();
     expect(parseClientMessage('no json')).toBeNull();
     expect(parseClientMessage('{"t":"hack"}')).toBeNull();

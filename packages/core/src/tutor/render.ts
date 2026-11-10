@@ -12,7 +12,9 @@ const FEMININE_ES = new Set(['q', 'r']);
 
 const pawnsText = (n: number, locale: Locale) => {
   const v = Math.round(n * 10) / 10;
-  return locale === 'es' ? `${v} ${v === 1 ? 'peón' : 'peones'}` : `${v} ${v === 1 ? 'pawn' : 'pawns'}`;
+  return locale === 'es'
+    ? `${v} ${v === 1 ? 'peón' : 'peones'}`
+    : `${v} ${v === 1 ? 'pawn' : 'pawns'}`;
 };
 
 const fmtEval = (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}`;
@@ -28,13 +30,17 @@ export function renderFact(fact: TutorFact, locale: Locale): string {
     case 'givesMate':
       return es ? '¡Jaque mate! Partida terminada.' : 'Checkmate! Game over.';
     case 'givesCheck':
-      return es ? 'La jugada da jaque y obliga al rival a responder.' : 'The move gives check and forces a reply.';
+      return es
+        ? 'La jugada da jaque y obliga al rival a responder.'
+        : 'The move gives check and forces a reply.';
     case 'capture':
       return es
         ? `Capturas ${FEMININE_ES.has(fact.piece) ? 'la' : 'el'} ${piece(fact.piece)} en ${fact.square}.`
         : `You capture the ${piece(fact.piece)} on ${fact.square}.`;
     case 'castles':
-      return es ? 'Enrocas: el rey queda más seguro y la torre se activa.' : 'You castle: king safety and an active rook.';
+      return es
+        ? 'Enrocas: el rey queda más seguro y la torre se activa.'
+        : 'You castle: king safety and an active rook.';
     case 'promotes':
       return es ? 'Coronas un peón.' : 'You promote a pawn.';
     case 'hangingPiece':
@@ -70,7 +76,9 @@ export function renderFact(fact: TutorFact, locale: Locale): string {
         ? `La evaluación pasa de ${fmtEval(fact.before)} a ${fmtEval(fact.after)} para ti.`
         : `The evaluation goes from ${fmtEval(fact.before)} to ${fmtEval(fact.after)} for you.`;
     case 'solidMove':
-      return es ? 'Jugada sólida: mantiene la valoración de la posición.' : 'Solid move: it keeps the evaluation.';
+      return es
+        ? 'Jugada sólida: mantiene la valoración de la posición.'
+        : 'Solid move: it keeps the evaluation.';
   }
 }
 

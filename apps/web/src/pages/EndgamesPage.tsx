@@ -109,7 +109,9 @@ export default function EndgamesPage() {
     setSource(verdict.source);
     if (!verdict.ok) {
       setStatus('failed');
-      setMessage(t(drill.goal === 'win' ? 'endgames.lostWin' : 'endgames.lostDraw', { san: played.san }));
+      setMessage(
+        t(drill.goal === 'win' ? 'endgames.lostWin' : 'endgames.lostDraw', { san: played.san }),
+      );
       return;
     }
     if (drill.goal === 'draw' && userMoves.current >= DRAW_SURVIVAL_MOVES) {
@@ -140,7 +142,13 @@ export default function EndgamesPage() {
         </div>
         <div className="grid cols-2">
           {ENDGAMES.map((d) => (
-            <button key={d.id} type="button" className="card" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => start(d)}>
+            <button
+              key={d.id}
+              type="button"
+              className="card"
+              style={{ textAlign: 'left', cursor: 'pointer' }}
+              onClick={() => start(d)}
+            >
               <div className="spread">
                 <strong>
                   {completed.includes(d.id) ? '✅ ' : ''}
@@ -171,17 +179,29 @@ export default function EndgamesPage() {
         </button>
       </div>
       <div className="train-layout">
-        <Board fen={fen} orientation={userColor} movable={status === 'playing' ? userColor : 'none'} onMove={(m) => void onMove(m)} lastMove={lastMove} />
+        <Board
+          fen={fen}
+          orientation={userColor}
+          movable={status === 'playing' ? userColor : 'none'}
+          onMove={(m) => void onMove(m)}
+          lastMove={lastMove}
+        />
         <div className="panel">
           <section className="card">
-            <p className={`status ${status === 'success' ? 'good' : status === 'failed' ? 'bad' : ''}`} aria-live="polite" data-testid="endgame-status">
+            <p
+              className={`status ${status === 'success' ? 'good' : status === 'failed' ? 'bad' : ''}`}
+              aria-live="polite"
+              data-testid="endgame-status"
+            >
               {status === 'playing' && t('endgames.yourMove')}
               {status === 'thinking' && t('endgames.checking')}
               {status === 'success' && t(drill.goal === 'win' ? 'endgames.won' : 'endgames.held')}
               {status === 'failed' && message}
             </p>
             <details style={{ marginTop: 8 }}>
-              <summary className="small" style={{ cursor: 'pointer' }}>{t('endgames.hint')}</summary>
+              <summary className="small" style={{ cursor: 'pointer' }}>
+                {t('endgames.hint')}
+              </summary>
               <p className="small muted">{drill.hint[locale]}</p>
             </details>
             <div className="row" style={{ marginTop: 12 }}>
@@ -196,7 +216,11 @@ export default function EndgamesPage() {
             )}
           </section>
           <section className="card">
-            <MoveList moves={sans.map((san) => ({ san }))} current={sans.length} startPly={userColor === 'b' ? 1 : 0} />
+            <MoveList
+              moves={sans.map((san) => ({ san }))}
+              current={sans.length}
+              startPly={userColor === 'b' ? 1 : 0}
+            />
           </section>
         </div>
       </div>

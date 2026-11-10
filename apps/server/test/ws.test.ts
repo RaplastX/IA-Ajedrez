@@ -23,7 +23,9 @@ afterAll(async () => {
 
 /** Cliente WebSocket con cola de mensajes para esperar el siguiente de un tipo. */
 async function client() {
-  const guest = (await (await fetch(`http://${base}/api/auth/guest`, { method: 'POST' })).json()) as { token: string };
+  const guest = (await (
+    await fetch(`http://${base}/api/auth/guest`, { method: 'POST' })
+  ).json()) as { token: string };
   const ws = new WebSocket(`ws://${base}/ws?token=${guest.token}`);
   const queue: ServerMessage[] = [];
   const waiters: { type: string; resolve: (m: ServerMessage) => void }[] = [];
@@ -75,7 +77,9 @@ describe('WebSocket de multijugador', () => {
     expect(end).toMatchObject({ result: '0-1', reason: 'resign' });
     await new Promise((r) => setTimeout(r, 100));
     const saved = await ctx.db.select().from(games);
-    expect(saved.some((g) => g.result === '0-1' && g.mode === 'online' && g.pgn.includes('1. f3 e5'))).toBe(true);
+    expect(
+      saved.some((g) => g.result === '0-1' && g.mode === 'online' && g.pgn.includes('1. f3 e5')),
+    ).toBe(true);
     a.ws.close();
     b.ws.close();
   });

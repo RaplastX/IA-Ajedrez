@@ -95,7 +95,9 @@ export function buildPgn(moves: string[], options: BuildPgnOptions = {}): string
 
 const UCI_RE = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 
-export function uciToMoveObject(uci: string): { from: string; to: string; promotion?: string } | null {
+export function uciToMoveObject(
+  uci: string,
+): { from: string; to: string; promotion?: string } | null {
   if (!UCI_RE.test(uci)) return null;
   return {
     from: uci.slice(0, 2),

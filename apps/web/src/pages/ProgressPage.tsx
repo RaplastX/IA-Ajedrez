@@ -18,12 +18,17 @@ export default function ProgressPage() {
   const games = useProgress((s) => s.games);
   const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(i18n.language);
 
-  const successRate = stats.puzzlesAttempted ? Math.round((stats.puzzlesSolved / stats.puzzlesAttempted) * 100) : 0;
+  const successRate = stats.puzzlesAttempted
+    ? Math.round((stats.puzzlesSolved / stats.puzzlesAttempted) * 100)
+    : 0;
   const themes = Object.entries(themeStats)
     .filter(([, s]) => s.attempts >= 1)
     .sort((a, b) => b[1].attempts - a[1].attempts)
     .slice(0, 8)
-    .map(([theme, s]) => ({ label: t(`themes.${theme}`, { defaultValue: theme }), value: Math.round((s.successes / s.attempts) * 100) }));
+    .map(([theme, s]) => ({
+      label: t(`themes.${theme}`, { defaultValue: theme }),
+      value: Math.round((s.successes / s.attempts) * 100),
+    }));
   const recs = recommendThemes(themeStats, { catalog: [...THEME_CATALOG], phaseErrors, limit: 3 });
 
   const tiles = [
@@ -56,33 +61,53 @@ export default function ProgressPage() {
           <LineChart
             title={t('progress.ratingHistory')}
             valueHeader={t('progress.puzzleRating')}
-            points={ratingHistory.map((p, i) => ({ x: i, y: p.rating, label: fmtDate(p.date), display: String(p.rating) }))}
+            points={ratingHistory.map((p, i) => ({
+              x: i,
+              y: p.rating,
+              label: fmtDate(p.date),
+              display: String(p.rating),
+            }))}
           />
         </section>
         <section className="card">
           <LineChart
             title={t('progress.accuracyHistory')}
             valueHeader={t('analysis.accuracy')}
-            points={accuracyHistory.map((p, i) => ({ x: i, y: p.accuracy, label: fmtDate(p.date), display: `${p.accuracy.toFixed(1)}%` }))}
+            points={accuracyHistory.map((p, i) => ({
+              x: i,
+              y: p.accuracy,
+              label: fmtDate(p.date),
+              display: `${p.accuracy.toFixed(1)}%`,
+            }))}
             yDomain={[0, 100]}
             formatTick={(v) => `${v}%`}
           />
         </section>
         <section className="card">
           <h2>{t('progress.themes')}</h2>
-          {themes.length ? <BarList rows={themes} max={100} format={(v) => `${v}%`} /> : <p className="muted small">{t('charts.noData')}</p>}
+          {themes.length ? (
+            <BarList rows={themes} max={100} format={(v) => `${v}%`} />
+          ) : (
+            <p className="muted small">{t('charts.noData')}</p>
+          )}
         </section>
         <section className="card">
           <h2>{t('progress.errorsByPhase')}</h2>
           <p className="small muted">{t('progress.errorsHelp')}</p>
           <BarList
-            rows={(['opening', 'middlegame', 'endgame'] as const).map((p) => ({ label: t(`phases.${p}`), value: phaseErrors[p] }))}
+            rows={(['opening', 'middlegame', 'endgame'] as const).map((p) => ({
+              label: t(`phases.${p}`),
+              value: phaseErrors[p],
+            }))}
           />
           <h3 style={{ marginTop: 16 }}>{t('progress.focus')}</h3>
           <ul className="list small">
             {recs.map((r) => (
               <li key={r.theme}>
-                <Link to={`/tactics?theme=${r.theme}`}>{t(`themes.${r.theme}`)}</Link> — {t(`reasons.${r.reason}`, { rate: r.successRate === null ? '' : Math.round(r.successRate * 100) })}
+                <Link to={`/tactics?theme=${r.theme}`}>{t(`themes.${r.theme}`)}</Link> —{' '}
+                {t(`reasons.${r.reason}`, {
+                  rate: r.successRate === null ? '' : Math.round(r.successRate * 100),
+                })}
               </li>
             ))}
           </ul>
@@ -110,13 +135,27 @@ export default function ProgressPage() {
                     <td>{fmtDate(g.date)}</td>
                     <td>{g.opponent}</td>
                     <td>{g.result}</td>
-                    <td className="num">{g.accuracy !== undefined ? `${g.accuracy.toFixed(1)}%` : '–'}</td>
+                    <td className="num">
+                      {g.accuracy !== undefined ? `${g.accuracy.toFixed(1)}%` : '–'}
+                    </td>
                     <td>
                       <div className="row">
-                        <button type="button" className="btn small" onClick={() => navigate('/analysis', { state: { pgn: g.pgn, playerColor: g.playerColor, gameId: g.id } })}>
+                        <button
+                          type="button"
+                          className="btn small"
+                          onClick={() =>
+                            navigate('/analysis', {
+                              state: { pgn: g.pgn, playerColor: g.playerColor, gameId: g.id },
+                            })
+                          }
+                        >
                           {t('play.analyze')}
                         </button>
-                        <button type="button" className="btn small" onClick={() => downloadText(`partida-${g.id.slice(0, 8)}.pgn`, g.pgn)}>
+                        <button
+                          type="button"
+                          className="btn small"
+                          onClick={() => downloadText(`partida-${g.id.slice(0, 8)}.pgn`, g.pgn)}
+                        >
                           PGN
                         </button>
                       </div>

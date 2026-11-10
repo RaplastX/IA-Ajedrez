@@ -1,5 +1,16 @@
 /** Esquema de base de datos (PostgreSQL) con Drizzle ORM. Debe coincidir con migrations.ts. */
-import { boolean, index, integer, jsonb, pgTable, real, serial, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  real,
+  serial,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -83,7 +94,11 @@ export const games = pgTable(
     accuracy: real('accuracy'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('games_owner_idx').on(t.ownerId), index('games_white_idx').on(t.whiteId), index('games_black_idx').on(t.blackId)],
+  (t) => [
+    index('games_owner_idx').on(t.ownerId),
+    index('games_white_idx').on(t.whiteId),
+    index('games_black_idx').on(t.blackId),
+  ],
 );
 
 export const schema = { users, ratings, progress, puzzles, puzzleAttempts, games };

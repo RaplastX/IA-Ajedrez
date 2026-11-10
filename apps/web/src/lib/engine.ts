@@ -112,7 +112,11 @@ export class StockfishEngine {
     this.send('stop');
   }
 
-  search(fen: string, options: SearchOptions = {}, onInfo?: (info: InfoLine) => void): Promise<SearchResult> {
+  search(
+    fen: string,
+    options: SearchOptions = {},
+    onInfo?: (info: InfoLine) => void,
+  ): Promise<SearchResult> {
     return this.enqueue(async () => {
       await this.ready;
       if (options.signal?.aborted) return { bestmove: null, lines: [], depth: 0 };
@@ -161,7 +165,8 @@ export class StockfishEngine {
 
 let shared: StockfishEngine | null = null;
 
-export const engineSupported = () => typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined';
+export const engineSupported = () =>
+  typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined';
 
 /** Motor compartido por toda la app (se crea al primer uso). */
 export function getEngine(): StockfishEngine {

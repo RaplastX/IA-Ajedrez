@@ -21,7 +21,14 @@ const puzzle: Puzzle = {
 
 describe('transiciones de progreso', () => {
   it('un puzzle resuelto suma XP, rating, tema, racha e insignia', () => {
-    const { data, outcome } = applyPuzzle(initialProgress(), puzzle, true, 0, undefined, '2026-11-09');
+    const { data, outcome } = applyPuzzle(
+      initialProgress(),
+      puzzle,
+      true,
+      0,
+      undefined,
+      '2026-11-09',
+    );
     expect(outcome.xp).toBeGreaterThanOrEqual(10);
     expect(outcome.badges).toContain('firstPuzzle');
     expect(data.stats.puzzlesSolved).toBe(1);
@@ -40,7 +47,9 @@ describe('transiciones de progreso', () => {
 
   it('usa el rating del servidor cuando existe', () => {
     const server = { rating: 1720, rd: 90, volatility: 0.06 };
-    expect(applyPuzzle(initialProgress(), puzzle, true, 0, server).data.puzzleRating).toEqual(server);
+    expect(applyPuzzle(initialProgress(), puzzle, true, 0, server).data.puzzleRating).toEqual(
+      server,
+    );
   });
 
   it('una victoria contra la IA registra el Elo vencido', () => {
@@ -98,6 +107,10 @@ describe('ejercicios a partir de errores', () => {
     const report = buildGameReport(game.moves, evals);
     const puzzles = puzzlesFromMistakes(report, 'b', 'g1', 1500);
     expect(puzzles).toHaveLength(1);
-    expect(puzzles[0]).toMatchObject({ id: 'mine-g1-4', moves: ['g1f3', 'b8c6', 'f1b5', 'a7a6'], themes: ['personal', 'opening'] });
+    expect(puzzles[0]).toMatchObject({
+      id: 'mine-g1-4',
+      moves: ['g1f3', 'b8c6', 'f1b5', 'a7a6'],
+      themes: ['personal', 'opening'],
+    });
   });
 });

@@ -115,7 +115,10 @@ export class MultiplayerHub {
       const color = game.white.id === user.id ? 'w' : 'b';
       game.abandonTimers.set(
         user.id,
-        this.setTimer(() => this.end(game, color === 'w' ? '0-1' : '1-0', 'abandon'), this.abandonMs),
+        this.setTimer(
+          () => this.end(game, color === 'w' ? '0-1' : '1-0', 'abandon'),
+          this.abandonMs,
+        ),
       );
     }
   }
@@ -152,13 +155,15 @@ export class MultiplayerHub {
   }
 
   private isPlaying(userId: string) {
-    for (const g of this.games.values()) if (g.white.id === userId || g.black.id === userId) return true;
+    for (const g of this.games.values())
+      if (g.white.id === userId || g.black.id === userId) return true;
     return false;
   }
 
   private seek(user: PlayerInfo, tc: TimeControl) {
     if (this.isPlaying(user.id)) return this.send(user.id, { t: 'error', code: 'already_playing' });
-    for (const [otherTc, seeker] of this.seeks) if (seeker.id === user.id) this.seeks.delete(otherTc);
+    for (const [otherTc, seeker] of this.seeks)
+      if (seeker.id === user.id) this.seeks.delete(otherTc);
     const opponent = this.seeks.get(tc);
     if (!opponent || !this.connections.has(opponent.id)) {
       this.seeks.set(tc, user);
@@ -181,7 +186,10 @@ export class MultiplayerHub {
     game.chess.setHeader('White', white.name);
     game.chess.setHeader('Black', black.name);
     game.chess.setHeader('TimeControl', tc);
-    game.chess.setHeader('Date', new Date(this.now()).toISOString().slice(0, 10).replace(/-/g, '.'));
+    game.chess.setHeader(
+      'Date',
+      new Date(this.now()).toISOString().slice(0, 10).replace(/-/g, '.'),
+    );
     this.games.set(game.id, game);
     this.send(white.id, this.startMessage(game, 'w'));
     this.send(black.id, this.startMessage(game, 'b'));
@@ -206,7 +214,8 @@ export class MultiplayerHub {
     if (!game) return this.send(user.id, { t: 'error', code: 'no_game' });
     const color = this.colorOf(game, user.id);
     if (!color) return this.send(user.id, { t: 'error', code: 'not_a_player' });
-    if (game.chess.turn() !== color) return this.send(user.id, { t: 'error', code: 'not_your_turn' });
+    if (game.chess.turn() !== color)
+      return this.send(user.id, { t: 'error', code: 'not_your_turn' });
 
     const now = this.now();
     if (game.clock.runningSince !== null && clockRemaining(game.clock, now)[color] <= 0) {
@@ -219,7 +228,15 @@ export class MultiplayerHub {
       return this.send(user.id, { t: 'error', code: 'illegal_move' });
     }
     game.clock = clockAfterMove(game.clock, now, game.incrementMs);
-    this.broadcast(game, { t: 'move', gameId, uci, san, fen: game.chess.fen(), clock: game.clock, serverNow: now });
+    this.broadcast(game, {
+      t: 'move',
+      gameId,
+      uci,
+      san,
+      fen: game.chess.fen(),
+      clock: game.clock,
+      serverNow: now,
+    });
 
     if (game.chess.isCheckmate()) return this.end(game, color === 'w' ? '1-0' : '0-1', 'checkmate');
     if (game.chess.isStalemate()) return this.end(game, '1/2-1/2', 'stalemate');
@@ -258,7 +275,15 @@ export class MultiplayerHub {
     const pgn = game.chess.pgn();
     this.broadcast(game, { t: 'end', gameId: game.id, result, reason, pgn });
     void Promise.resolve(
-      this.options.onGameEnd?.({ id: game.id, white: game.white, black: game.black, tc: game.tc, pgn, result, reason }),
+      this.options.onGameEnd?.({
+        id: game.id,
+        white: game.white,
+        black: game.black,
+        tc: game.tc,
+        pgn,
+        result,
+        reason,
+      }),
     ).catch(() => undefined);
   }
 

@@ -10,7 +10,7 @@ import {
   type TimeControl,
 } from '@ia-ajedrez/core';
 import { Chess } from 'chess.js';
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Board, type BoardMove } from '../components/Board/Board';
@@ -38,21 +38,25 @@ export default function MultiplayerPage() {
   const token = useSettings((s) => s.token);
   const setSession = useSettings((s) => s.setSession);
   const recordGame = useProgress((s) => s.recordGame);
-  const [connection, setConnection] = useState<'idle' | 'connecting' | 'open' | 'closed'>('idle');
+  const [connection, setConnection] = useState<'connecting' | 'open' | 'closed'>('connecting');
   const [seeking, setSeeking] = useState<TimeControl | null>(null);
   const [tc, setTc] = useState<TimeControl>('3+2');
   const [game, setGame] = useState<OnlineGame | null>(null);
   const [chat, setChat] = useState<{ from: string; text: string }[]>([]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [, tick] = useReducer((x: number) => x + 1, 0);
+  // Instante actual para los relojes; se actualiza en un intervalo (no se lee el reloj al renderizar).
+  const [now, setNow] = useState(0);
   const socket = useRef<WebSocket | null>(null);
+  // Copia síncrona de la partida para el manejador del WebSocket (se escribe solo en eventos).
   const gameRef = useRef<OnlineGame | null>(null);
-  gameRef.current = game;
+  const updateGame = (next: OnlineGame | null) => {
+    gameRef.current = next;
+    setGame(next);
+  };
 
   useEffect(() => {
     if (!token) return;
-    setConnection('connecting');
     const ws = new WebSocket(websocketUrl(token));
     socket.current = ws;
     ws.onopen = () => setConnection('open');
@@ -71,7 +75,7 @@ export default function MultiplayerPage() {
         case 'start':
           setSeeking(null);
           setChat([]);
-          setGame({
+          updateGame({
             id: msg.gameId,
             color: msg.color,
             white: msg.white,
@@ -85,13 +89,16 @@ export default function MultiplayerPage() {
         case 'move':
           if (current?.id === msg.gameId) {
             current.chess.move(uciToMoveObject(msg.uci)!);
-            setGame({ ...current, clock: msg.clock, offset: msg.serverNow - Date.now() });
+            updateGame({ ...current, clock: msg.clock, offset: msg.serverNow - Date.now() });
           }
           break;
         case 'end':
           if (current?.id === msg.gameId) {
-            const ended = { ...current, end: { result: msg.result, reason: msg.reason, pgn: msg.pgn } };
-            setGame(ended);
+            const ended = {
+              ...current,
+              end: { result: msg.result, reason: msg.reason, pgn: msg.pgn },
+            };
+            updateGame(ended);
             const opponent = current.color === 'w' ? current.black.name : current.white.name;
             recordGame({
               id: msg.gameId,
@@ -114,7 +121,10 @@ export default function MultiplayerPage() {
           break;
       }
     };
-    const ping = window.setInterval(() => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify({ t: 'ping' })), 25_000);
+    const ping = window.setInterval(
+      () => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify({ t: 'ping' })),
+      25_000,
+    );
     return () => {
       window.clearInterval(ping);
       ws.close();
@@ -124,7 +134,7 @@ export default function MultiplayerPage() {
   // Refresca los relojes en pantalla.
   useEffect(() => {
     if (!game || game.end) return;
-    const id = window.setInterval(tick, 200);
+    const id = window.setInterval(() => setNow(Date.now()), 200);
     return () => window.clearInterval(id);
   }, [game]);
 
@@ -158,7 +168,11 @@ export default function MultiplayerPage() {
               {t('online.login')}
             </Link>
           </div>
-          {error && <p className="status bad" style={{ marginTop: 12 }}>{t('online.errors.server')}</p>}
+          {error && (
+            <p className="status bad" style={{ marginTop: 12 }}>
+              {t('online.errors.server')}
+            </p>
+          )}
         </section>
       </>
     );
@@ -169,7 +183,11 @@ export default function MultiplayerPage() {
     send({ t: 'move', gameId: game.id, uci: `${move.from}${move.to}${move.promotion ?? ''}` });
   }
 
-  const remaining = game ? clockRemaining(game.clock, Date.now() + game.offset) : null;
+  const remaining = game
+    ? now
+      ? clockRemaining(game.clock, now + game.offset)
+      : { w: game.clock.w, b: game.clock.b }
+    : null;
   const history = game?.chess.history({ verbose: true }) ?? [];
   const last = history[history.length - 1];
   const opponentColor = game?.color === 'w' ? 'b' : 'w';
@@ -180,7 +198,10 @@ export default function MultiplayerPage() {
           <strong>{color === 'w' ? game.white.name : game.black.name}</strong>
           {color === game.color ? ` (${t('online.you')})` : ''}
         </span>
-        <span className={`clock${!game.end && game.chess.turn() === color ? ' active' : ''}`} data-testid={`clock-${color}`}>
+        <span
+          className={`clock${!game.end && game.chess.turn() === color ? ' active' : ''}`}
+          data-testid={`clock-${color}`}
+        >
           {formatClock(remaining[color])}
         </span>
       </div>
@@ -193,7 +214,9 @@ export default function MultiplayerPage() {
           <h1>{t('online.title')}</h1>
           <p>{t('online.subtitle')}</p>
         </div>
-        <span className="chip" data-testid="connection">{t(`online.connection.${connection}`)}</span>
+        <span className="chip" data-testid="connection">
+          {t(`online.connection.${connection}`)}
+        </span>
       </div>
       <div className="train-layout">
         <div className="panel">
@@ -213,20 +236,33 @@ export default function MultiplayerPage() {
               <h2>{t('online.seek')}</h2>
               <div className="row" style={{ marginBottom: 12 }}>
                 {TIME_CONTROLS.map((c) => (
-                  <button key={c} type="button" className="chip" aria-pressed={tc === c} onClick={() => setTc(c)}>
+                  <button
+                    key={c}
+                    type="button"
+                    className="chip"
+                    aria-pressed={tc === c}
+                    onClick={() => setTc(c)}
+                  >
                     {c}
                   </button>
                 ))}
               </div>
               {seeking ? (
                 <div className="row">
-                  <span className="status" aria-live="polite">{t('online.searching', { tc: seeking })}</span>
+                  <span className="status" aria-live="polite">
+                    {t('online.searching', { tc: seeking })}
+                  </span>
                   <button type="button" className="btn" onClick={() => send({ t: 'cancel' })}>
                     {t('common.cancel')}
                   </button>
                 </div>
               ) : (
-                <button type="button" className="btn primary" disabled={connection !== 'open'} onClick={() => send({ t: 'seek', tc })}>
+                <button
+                  type="button"
+                  className="btn primary"
+                  disabled={connection !== 'open'}
+                  onClick={() => send({ t: 'seek', tc })}
+                >
                   {t('online.find')}
                 </button>
               )}
@@ -239,14 +275,24 @@ export default function MultiplayerPage() {
                   <p className="status" aria-live="polite">
                     {t(`online.end.${game.end.reason}`, { result: game.end.result })}
                   </p>
-                  <button type="button" className="btn small" onClick={() => downloadText(`online-${game.id.slice(0, 8)}.pgn`, game.end!.pgn)}>
+                  <button
+                    type="button"
+                    className="btn small"
+                    onClick={() => downloadText(`online-${game.id.slice(0, 8)}.pgn`, game.end!.pgn)}
+                  >
                     {t('common.downloadPgn')}
                   </button>
                 </>
               ) : (
                 <div className="spread">
-                  <span className="status">{game.chess.turn() === game.color ? t('play.yourTurn') : t('play.waiting')}</span>
-                  <button type="button" className="btn danger" onClick={() => send({ t: 'resign', gameId: game.id })}>
+                  <span className="status">
+                    {game.chess.turn() === game.color ? t('play.yourTurn') : t('play.waiting')}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn danger"
+                    onClick={() => send({ t: 'resign', gameId: game.id })}
+                  >
                     {t('play.resign')}
                   </button>
                 </div>
@@ -273,15 +319,30 @@ export default function MultiplayerPage() {
                   setMessage('');
                 }}
               >
-                <input type="text" value={message} maxLength={200} onChange={(e) => setMessage(e.target.value)} aria-label={t('online.chat')} style={{ flex: 1 }} />
+                <input
+                  type="text"
+                  value={message}
+                  maxLength={200}
+                  onChange={(e) => setMessage(e.target.value)}
+                  aria-label={t('online.chat')}
+                  style={{ flex: 1 }}
+                />
                 <button type="submit" className="btn small">
                   {t('online.send')}
                 </button>
               </form>
-              <p className="small muted" style={{ marginTop: 6 }}>{t('online.chatRules')}</p>
+              <p className="small muted" style={{ marginTop: 6 }}>
+                {t('online.chatRules')}
+              </p>
             </section>
           )}
-          {error && <p className="status bad">{t(`online.errors.${['connection', 'server', 'illegal_move', 'not_your_turn'].includes(error) ? error : 'server'}`)}</p>}
+          {error && (
+            <p className="status bad">
+              {t(
+                `online.errors.${['connection', 'server', 'illegal_move', 'not_your_turn'].includes(error) ? error : 'server'}`,
+              )}
+            </p>
+          )}
         </div>
       </div>
     </>

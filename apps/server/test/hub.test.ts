@@ -30,7 +30,12 @@ function fakeTime() {
 function setup() {
   const time = fakeTime();
   const ended: FinishedGame[] = [];
-  const hub = new MultiplayerHub({ ...time, random: () => 0, abandonMs: 30_000, onGameEnd: (g) => void ended.push(g) });
+  const hub = new MultiplayerHub({
+    ...time,
+    random: () => 0,
+    abandonMs: 30_000,
+    onGameEnd: (g) => void ended.push(g),
+  });
   const inbox = { ana: [] as ServerMessage[], beto: [] as ServerMessage[] };
   const ana = hub.connect({ id: 'ana', name: 'Ana' }, (m) => inbox.ana.push(m));
   const beto = hub.connect({ id: 'beto', name: 'Beto' }, (m) => inbox.beto.push(m));
@@ -70,7 +75,11 @@ describe('emparejamiento y partida', () => {
       s.send(who, { t: 'move', gameId, uci });
     }
     expect(s.last(s.inbox.beto)).toMatchObject({ t: 'end', result: '0-1', reason: 'checkmate' });
-    expect(s.ended[0]).toMatchObject({ result: '0-1', reason: 'checkmate', white: { name: 'Beto' } });
+    expect(s.ended[0]).toMatchObject({
+      result: '0-1',
+      reason: 'checkmate',
+      white: { name: 'Beto' },
+    });
     expect(s.ended[0]!.pgn).toContain('Qh4#');
     expect(s.hub.stats.games).toBe(0);
   });

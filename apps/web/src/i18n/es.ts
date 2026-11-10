@@ -38,7 +38,9 @@ export const es = {
     bn: 'caballo negro',
     bp: 'peón negro',
   },
-  engine: { unsupported: 'Tu navegador no admite WebAssembly o Web Workers; el motor no puede ejecutarse.' },
+  engine: {
+    unsupported: 'Tu navegador no admite WebAssembly o Web Workers; el motor no puede ejecutarse.',
+  },
   charts: { noData: 'Todavía no hay datos.', showTable: 'Ver como tabla' },
   home: {
     title: '¡Hola! ¿Entrenamos?',
@@ -54,7 +56,8 @@ export const es = {
     puzzlesSolved_other: '{{count}} puzzles resueltos',
     challenges: 'Retos de hoy',
     recommended: 'Recomendado para ti',
-    recommendedHelp: 'Calculado a partir de tus resultados en puzzles y de los errores de tus partidas.',
+    recommendedHelp:
+      'Calculado a partir de tus resultados en puzzles y de los errores de tus partidas.',
     train: 'Entrenar',
     reviewMistakes_one: 'Repasar {{count}} error de tus partidas',
     reviewMistakes_other: 'Repasar {{count}} errores de tus partidas',
@@ -187,8 +190,10 @@ export const es = {
     you: 'Tú',
     newGame: 'Nueva partida',
     strength: 'Fuerza',
-    humanizedHelp: 'Por debajo de 1320 Elo la IA elige entre varias jugadas candidatas, cometiendo errores "humanos".',
-    uciEloHelp: 'A partir de 1320 Elo se usa el limitador de fuerza oficial de Stockfish (UCI_Elo).',
+    humanizedHelp:
+      'Por debajo de 1320 Elo la IA elige entre varias jugadas candidatas, cometiendo errores "humanos".',
+    uciEloHelp:
+      'A partir de 1320 Elo se usa el limitador de fuerza oficial de Stockfish (UCI_Elo).',
     color: 'Color',
     colors: { w: 'Blancas', b: 'Negras', random: 'Aleatorio' },
     start: 'Empezar',
@@ -211,8 +216,12 @@ export const es = {
   },
   analysis: {
     title: 'Análisis de partidas',
-    subtitle: 'Stockfish revisa cada jugada, calcula tu precisión y convierte tus errores en ejercicios.',
-    errors: { empty: 'El PGN está vacío o no contiene jugadas.', invalid: 'No se pudo leer el PGN. Revisa que las jugadas sean legales.' },
+    subtitle:
+      'Stockfish revisa cada jugada, calcula tu precisión y convierte tus errores en ejercicios.',
+    errors: {
+      empty: 'El PGN está vacío o no contiene jugadas.',
+      invalid: 'No se pudo leer el PGN. Revisa que las jugadas sean legales.',
+    },
     puzzlesCreated_one: 'Se ha creado {{count}} ejercicio con tus errores',
     puzzlesCreated_other: 'Se han creado {{count}} ejercicios con tus errores',
     evalBar: 'Evaluación {{value}}',
@@ -274,7 +283,8 @@ export const es = {
     showSolution: 'Ver solución',
     next: 'Siguiente puzzle',
     source: 'Fuente (Lichess, CC0):',
-    adaptiveHelp: 'La dificultad se ajusta sola: un algoritmo de bandido multibrazo (muestreo de Thompson) busca puzzles que aciertes ~70 % de las veces, la zona donde más se aprende.',
+    adaptiveHelp:
+      'La dificultad se ajusta sola: un algoritmo de bandido multibrazo (muestreo de Thompson) busca puzzles que aciertes ~70 % de las veces, la zona donde más se aprende.',
   },
   openings: {
     title: 'Aperturas',
@@ -368,7 +378,10 @@ export const es = {
     beat1200: { name: 'Domador de robots', desc: 'Gana a la IA de 1200 Elo o más.' },
     beat1600: { name: 'Cazador de máquinas', desc: 'Gana a la IA de 1600 Elo o más.' },
     beat2000: { name: 'Terminator', desc: 'Gana a la IA de 2000 Elo o más.' },
-    accuracy90: { name: 'Precisión quirúrgica', desc: 'Juega una partida con un 90 % de precisión.' },
+    accuracy90: {
+      name: 'Precisión quirúrgica',
+      desc: 'Juega una partida con un 90 % de precisión.',
+    },
     streak3: { name: 'Constancia', desc: 'Entrena 3 días seguidos.' },
     streak7: { name: 'Semana perfecta', desc: 'Entrena 7 días seguidos.' },
     streak30: { name: 'Hábito de campeón', desc: 'Entrena 30 días seguidos.' },
@@ -383,7 +396,10 @@ export const es = {
     title: 'Clasificación',
     subtitle: 'Los mejores de la comunidad.',
     boards: { puzzle: 'Rating de táctica', xp: 'Experiencia (XP)' },
-    errors: { offline: 'No se pudo conectar con el servidor.', generic: 'No se pudo cargar la clasificación.' },
+    errors: {
+      offline: 'No se pudo conectar con el servidor.',
+      generic: 'No se pudo cargar la clasificación.',
+    },
     login: 'Inicia sesión para aparecer.',
     empty: 'Aún no hay nadie en la clasificación.',
     player: 'Jugador',
@@ -402,7 +418,7 @@ export const es = {
       not_your_turn: 'No es tu turno.',
     },
     you: 'tú',
-    connection: { idle: 'Desconectado', connecting: 'Conectando…', open: 'Conectado', closed: 'Desconectado' },
+    connection: { connecting: 'Conectando…', open: 'Conectado', closed: 'Desconectado' },
     seek: 'Buscar partida',
     searching: 'Buscando rival ({{tc}})…',
     find: 'Buscar rival',
@@ -452,7 +468,10 @@ export const es = {
       body: 'Entrenador con IA generativa que explica tus jugadas en lenguaje natural. Pago seguro con Stripe; cancela cuando quieras.',
       cta: 'Hazte Premium',
       active: 'Premium activo',
-      errors: { payments_disabled: 'Los pagos no están configurados en este servidor.', unknown: 'No se pudo iniciar el pago.' },
+      errors: {
+        payments_disabled: 'Los pagos no están configurados en este servidor.',
+        unknown: 'No se pudo iniciar el pago.',
+      },
     },
     privacy: {
       title: 'Privacidad y datos (RGPD)',
@@ -460,7 +479,8 @@ export const es = {
       analytics: 'Permitir analítica anónima',
       export: 'Descargar mis datos',
       delete: 'Borrar mis datos y mi cuenta',
-      confirmDelete: '¿Seguro? Se borrará tu progreso local y tu cuenta del servidor. No se puede deshacer.',
+      confirmDelete:
+        '¿Seguro? Se borrará tu progreso local y tu cuenta del servidor. No se puede deshacer.',
       deleted: 'Tus datos se han borrado.',
     },
     licenses: {

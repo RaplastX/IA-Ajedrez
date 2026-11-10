@@ -47,19 +47,26 @@ export async function trainingRoutes(app: FastifyInstance, ctx: AppContext) {
     return { data: row?.data ?? null, updatedAt: row?.updatedAt.toISOString() ?? null };
   });
 
-  app.put('/api/progress', { preHandler: app.authenticate, bodyLimit: 512 * 1024 }, async (request, reply) => {
-    const body = parseBody(progressSchema, request.body, reply);
-    if (!body) return;
-    // La XP la declara el cliente (modo sin conexión): se acota para limitar abusos.
-    const stats = body.data.stats as { xp?: unknown } | undefined;
-    const xp = Math.max(0, Math.min(10_000_000, Math.floor(Number(stats?.xp) || 0)));
-    const now = new Date();
-    await db
-      .insert(progress)
-      .values({ userId: request.user.sub, data: body.data, xp, updatedAt: now })
-      .onConflictDoUpdate({ target: progress.userId, set: { data: body.data, xp, updatedAt: now } });
-    return { ok: true };
-  });
+  app.put(
+    '/api/progress',
+    { preHandler: app.authenticate, bodyLimit: 512 * 1024 },
+    async (request, reply) => {
+      const body = parseBody(progressSchema, request.body, reply);
+      if (!body) return;
+      // La XP la declara el cliente (modo sin conexión): se acota para limitar abusos.
+      const stats = body.data.stats as { xp?: unknown } | undefined;
+      const xp = Math.max(0, Math.min(10_000_000, Math.floor(Number(stats?.xp) || 0)));
+      const now = new Date();
+      await db
+        .insert(progress)
+        .values({ userId: request.user.sub, data: body.data, xp, updatedAt: now })
+        .onConflictDoUpdate({
+          target: progress.userId,
+          set: { data: body.data, xp, updatedAt: now },
+        });
+      return { ok: true };
+    },
+  );
 
   app.get('/api/puzzles/next', { preHandler: app.authenticate }, async (request) => {
     const { theme } = request.query as { theme?: string };
@@ -74,54 +81,78 @@ export async function trainingRoutes(app: FastifyInstance, ctx: AppContext) {
     return { puzzle: rows[0] ?? null };
   });
 
-  app.post('/api/puzzles/:id/attempts', { preHandler: app.authenticate }, async (request, reply) => {
-    const body = parseBody(attemptSchema, request.body, reply);
-    if (!body) return;
-    const { id } = request.params as { id: string };
-    const [puzzle] = await db.select().from(puzzles).where(eq(puzzles.id, id));
-    if (!puzzle) return reply.code(404).send({ error: 'puzzle_not_found' });
-    const userId = request.user.sub;
-    const solved = verifyPuzzleSolution({ ...puzzle, popularity: puzzle.popularity ?? undefined }, body.moves);
+  app.post(
+    '/api/puzzles/:id/attempts',
+    { preHandler: app.authenticate },
+    async (request, reply) => {
+      const body = parseBody(attemptSchema, request.body, reply);
+      if (!body) return;
+      const { id } = request.params as { id: string };
+      const [puzzle] = await db.select().from(puzzles).where(eq(puzzles.id, id));
+      if (!puzzle) return reply.code(404).send({ error: 'puzzle_not_found' });
+      const userId = request.user.sub;
+      const solved = verifyPuzzleSolution(
+        { ...puzzle, popularity: puzzle.popularity ?? undefined },
+        body.moves,
+      );
 
-    const [current] = await db.select().from(ratings).where(eq(ratings.userId, userId));
-    const before = current ?? { rating: 1500, rd: 350, volatility: 0.06, solved: 0, attempted: 0 };
-    // Solo el primer intento de cada puzzle cuenta para el rating (evita "farmear").
-    const previous = await db
-      .select({ id: puzzleAttempts.id })
-      .from(puzzleAttempts)
-      .where(and(eq(puzzleAttempts.userId, userId), eq(puzzleAttempts.puzzleId, id)))
-      .limit(1);
-    const counted = previous.length === 0;
-    const next = counted ? updatePuzzleRating(before, puzzle.rating, solved) : before;
+      const [current] = await db.select().from(ratings).where(eq(ratings.userId, userId));
+      const before = current ?? {
+        rating: 1500,
+        rd: 350,
+        volatility: 0.06,
+        solved: 0,
+        attempted: 0,
+      };
+      // Solo el primer intento de cada puzzle cuenta para el rating (evita "farmear").
+      const previous = await db
+        .select({ id: puzzleAttempts.id })
+        .from(puzzleAttempts)
+        .where(and(eq(puzzleAttempts.userId, userId), eq(puzzleAttempts.puzzleId, id)))
+        .limit(1);
+      const counted = previous.length === 0;
+      const next = counted ? updatePuzzleRating(before, puzzle.rating, solved) : before;
 
-    await db.transaction(async (tx) => {
-      await tx.insert(puzzleAttempts).values({
-        userId,
-        puzzleId: id,
-        solved,
-        timeMs: body.timeMs ?? null,
-        ratingBefore: before.rating,
-        ratingAfter: next.rating,
-      });
-      if (counted) {
-        await tx
-          .insert(ratings)
-          .values({ userId, rating: next.rating, rd: next.rd, volatility: next.volatility, solved: solved ? 1 : 0, attempted: 1 })
-          .onConflictDoUpdate({
-            target: ratings.userId,
-            set: {
+      await db.transaction(async (tx) => {
+        await tx.insert(puzzleAttempts).values({
+          userId,
+          puzzleId: id,
+          solved,
+          timeMs: body.timeMs ?? null,
+          ratingBefore: before.rating,
+          ratingAfter: next.rating,
+        });
+        if (counted) {
+          await tx
+            .insert(ratings)
+            .values({
+              userId,
               rating: next.rating,
               rd: next.rd,
               volatility: next.volatility,
-              solved: sql`${ratings.solved} + ${solved ? 1 : 0}`,
-              attempted: sql`${ratings.attempted} + 1`,
-              updatedAt: new Date(),
-            },
-          });
-      }
-    });
-    return { solved, counted, rating: { rating: next.rating, rd: next.rd, volatility: next.volatility } };
-  });
+              solved: solved ? 1 : 0,
+              attempted: 1,
+            })
+            .onConflictDoUpdate({
+              target: ratings.userId,
+              set: {
+                rating: next.rating,
+                rd: next.rd,
+                volatility: next.volatility,
+                solved: sql`${ratings.solved} + ${solved ? 1 : 0}`,
+                attempted: sql`${ratings.attempted} + 1`,
+                updatedAt: new Date(),
+              },
+            });
+        }
+      });
+      return {
+        solved,
+        counted,
+        rating: { rating: next.rating, rd: next.rd, volatility: next.volatility },
+      };
+    },
+  );
 
   app.post('/api/games', { preHandler: app.authenticate }, async (request, reply) => {
     const body = parseBody(gameSchema, request.body, reply);
@@ -178,6 +209,8 @@ export async function trainingRoutes(app: FastifyInstance, ctx: AppContext) {
             .where(and(eq(users.isGuest, false), gte(ratings.attempted, 3)))
             .orderBy(desc(ratings.rating))
             .limit(n);
-    return { entries: rows.map((r, i) => ({ rank: i + 1, displayName: r.displayName, value: r.value })) };
+    return {
+      entries: rows.map((r, i) => ({ rank: i + 1, displayName: r.displayName, value: r.value })),
+    };
   });
 }

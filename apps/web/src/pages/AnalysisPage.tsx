@@ -142,7 +142,8 @@ export default function AnalysisPage() {
     const gameId = incoming.gameId ?? uid();
     recordAnalysis(own.accuracy, own.errorsByPhase, incoming.gameId);
     const created = addPersonalPuzzles(puzzlesFromMistakes(built, playerColor, gameId, rating));
-    if (created > 0) pushToast({ kind: 'info', text: 'analysis.puzzlesCreated', params: { count: created } });
+    if (created > 0)
+      pushToast({ kind: 'info', text: 'analysis.puzzlesCreated', params: { count: created } });
   }
 
   // Si venimos de una partida contra la IA, se analiza automáticamente.
@@ -157,7 +158,11 @@ export default function AnalysisPage() {
   useEffect(() => {
     if (!report) return;
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT') return;
+      if (
+        (e.target as HTMLElement).tagName === 'TEXTAREA' ||
+        (e.target as HTMLElement).tagName === 'INPUT'
+      )
+        return;
       if (e.key === 'ArrowLeft') setPly((p) => Math.max(0, p - 1));
       if (e.key === 'ArrowRight') setPly((p) => Math.min(report.moves.length, p + 1));
     };
@@ -183,11 +188,22 @@ export default function AnalysisPage() {
 
   if (!engineSupported()) return <p>{t('engine.unsupported')}</p>;
 
-  const fen = game ? (ply === 0 ? game.startFen : game.moves[ply - 1]!.fenAfter) : new Chess().fen();
-  const isError = selected && ['inaccuracy', 'mistake', 'blunder'].includes(selected.classification);
+  const fen = game
+    ? ply === 0
+      ? game.startFen
+      : game.moves[ply - 1]!.fenAfter
+    : new Chess().fen();
+  const isError =
+    selected && ['inaccuracy', 'mistake', 'blunder'].includes(selected.classification);
   const arrows =
     selected && isError && selected.bestUci
-      ? [{ from: selected.bestUci.slice(0, 2), to: selected.bestUci.slice(2, 4), color: 'best' as const }]
+      ? [
+          {
+            from: selected.bestUci.slice(0, 2),
+            to: selected.bestUci.slice(2, 4),
+            color: 'best' as const,
+          },
+        ]
       : [];
 
   async function askTutor() {
@@ -206,7 +222,9 @@ export default function AnalysisPage() {
       setAiAnswer(res.text);
     } catch (e) {
       const code = e instanceof ApiError ? e.code : 'unknown';
-      setAiAnswer(t(`tutor.errors.${code === 'premium_required' || code === 'network' ? code : 'generic'}`));
+      setAiAnswer(
+        t(`tutor.errors.${code === 'premium_required' || code === 'network' ? code : 'generic'}`),
+      );
     } finally {
       setAiBusy(false);
     }
@@ -217,14 +235,24 @@ export default function AnalysisPage() {
     const comments: Record<number, string> = {};
     report.moves.forEach((m) => {
       const parts = [t(`classes.${m.classification}`), formatScore(m.evalAfter)];
-      if (m.bestUci && m.bestUci !== m.uci && ['inaccuracy', 'mistake', 'blunder'].includes(m.classification)) {
+      if (
+        m.bestUci &&
+        m.bestUci !== m.uci &&
+        ['inaccuracy', 'mistake', 'blunder'].includes(m.classification)
+      ) {
         parts.push(`${t('analysis.best')}: ${uciLineToSan(m.fenBefore, [m.bestUci])[0]}`);
       }
       comments[m.ply] = parts.join(' · ');
     });
     const pgn = buildPgn(
       game.moves.map((m) => m.uci),
-      { headers: { ...game.headers, Annotator: 'IA Ajedrez + Stockfish' }, comments, startFen: game.startFen.startsWith('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w') ? undefined : game.startFen },
+      {
+        headers: { ...game.headers, Annotator: 'IA Ajedrez + Stockfish' },
+        comments,
+        startFen: game.startFen.startsWith('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w')
+          ? undefined
+          : game.startFen,
+      },
     );
     downloadText('analisis.pgn', pgn);
   }
@@ -242,14 +270,47 @@ export default function AnalysisPage() {
         <div className="panel">
           <div className="board-with-bar">
             <EvalBar score={evals[ply]?.score} orientation={playerColor} />
-            <Board fen={fen} orientation={playerColor} lastMove={selected ? [selected.uci.slice(0, 2), selected.uci.slice(2, 4)] : null} arrows={arrows} />
+            <Board
+              fen={fen}
+              orientation={playerColor}
+              lastMove={selected ? [selected.uci.slice(0, 2), selected.uci.slice(2, 4)] : null}
+              arrows={arrows}
+            />
           </div>
           {report && (
             <div className="row" style={{ justifyContent: 'center' }}>
-              <button type="button" className="btn small" onClick={() => setPly(0)} aria-label={t('analysis.first')}>⏮</button>
-              <button type="button" className="btn small" onClick={() => setPly((p) => Math.max(0, p - 1))} aria-label={t('analysis.prev')}>◀</button>
-              <button type="button" className="btn small" onClick={() => setPly((p) => Math.min(report.moves.length, p + 1))} aria-label={t('analysis.next')}>▶</button>
-              <button type="button" className="btn small" onClick={() => setPly(report.moves.length)} aria-label={t('analysis.last')}>⏭</button>
+              <button
+                type="button"
+                className="btn small"
+                onClick={() => setPly(0)}
+                aria-label={t('analysis.first')}
+              >
+                ⏮
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                onClick={() => setPly((p) => Math.max(0, p - 1))}
+                aria-label={t('analysis.prev')}
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                onClick={() => setPly((p) => Math.min(report.moves.length, p + 1))}
+                aria-label={t('analysis.next')}
+              >
+                ▶
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                onClick={() => setPly(report.moves.length)}
+                aria-label={t('analysis.last')}
+              >
+                ⏭
+              </button>
             </div>
           )}
           {report && (
@@ -260,7 +321,10 @@ export default function AnalysisPage() {
                 points={report.whiteWinPercents.map((y, i) => ({
                   x: i,
                   y,
-                  label: i === 0 ? t('analysis.start') : `${Math.ceil(i / 2)}${i % 2 === 1 ? '.' : '…'} ${report.moves[i - 1]!.san}`,
+                  label:
+                    i === 0
+                      ? t('analysis.start')
+                      : `${Math.ceil(i / 2)}${i % 2 === 1 ? '.' : '…'} ${report.moves[i - 1]!.san}`,
                   display: formatScore(evals[i]!.score),
                 }))}
                 yDomain={[0, 100]}
@@ -297,14 +361,22 @@ export default function AnalysisPage() {
                 </label>
                 <label className="field" style={{ flex: 1 }}>
                   <span>{t('analysis.iPlayed')}</span>
-                  <select value={playerColor} onChange={(e) => setPlayerColor(e.target.value as 'w' | 'b')}>
+                  <select
+                    value={playerColor}
+                    onChange={(e) => setPlayerColor(e.target.value as 'w' | 'b')}
+                  >
                     <option value="w">{t('play.colors.w')}</option>
                     <option value="b">{t('play.colors.b')}</option>
                   </select>
                 </label>
               </div>
               <div className="row" style={{ marginTop: 12 }}>
-                <button type="button" className="btn primary" onClick={() => void analyze()} disabled={!!progress}>
+                <button
+                  type="button"
+                  className="btn primary"
+                  onClick={() => void analyze()}
+                  disabled={!!progress}
+                >
                   {t('analysis.run')}
                 </button>
                 <button type="button" className="btn" onClick={() => setPgnText(SAMPLE_PGN)}>
@@ -331,7 +403,11 @@ export default function AnalysisPage() {
                   </div>
                 </div>
               )}
-              {error && <p className="status bad" role="alert" style={{ marginTop: 12 }}>{error}</p>}
+              {error && (
+                <p className="status bad" role="alert" style={{ marginTop: 12 }}>
+                  {error}
+                </p>
+              )}
             </section>
           )}
 
@@ -340,7 +416,15 @@ export default function AnalysisPage() {
               <section className="card" data-testid="analysis-summary">
                 <div className="spread">
                   <h2 style={{ margin: 0 }}>{t('analysis.summary')}</h2>
-                  <button type="button" className="btn small" onClick={() => { setReport(null); setGame(null); setEvals([]); }}>
+                  <button
+                    type="button"
+                    className="btn small"
+                    onClick={() => {
+                      setReport(null);
+                      setGame(null);
+                      setEvals([]);
+                    }}
+                  >
                     {t('analysis.newAnalysis')}
                   </button>
                 </div>
@@ -355,9 +439,15 @@ export default function AnalysisPage() {
                   </thead>
                   <tbody>
                     <tr>
-                      <td><strong>{t('analysis.accuracy')}</strong></td>
-                      <td className="num"><strong>{report.summary.w.accuracy?.toFixed(1) ?? '–'}%</strong></td>
-                      <td className="num"><strong>{report.summary.b.accuracy?.toFixed(1) ?? '–'}%</strong></td>
+                      <td>
+                        <strong>{t('analysis.accuracy')}</strong>
+                      </td>
+                      <td className="num">
+                        <strong>{report.summary.w.accuracy?.toFixed(1) ?? '–'}%</strong>
+                      </td>
+                      <td className="num">
+                        <strong>{report.summary.b.accuracy?.toFixed(1) ?? '–'}%</strong>
+                      </td>
                     </tr>
                     <tr>
                       <td>{t('analysis.acpl')}</td>
@@ -374,14 +464,21 @@ export default function AnalysisPage() {
                   </tbody>
                 </table>
                 <div className="row" style={{ marginTop: 12 }}>
-                  <Link className="btn small" to="/tactics?mode=mine">{t('analysis.practiceMistakes')}</Link>
-                  <button type="button" className="btn small" onClick={exportAnnotated}>{t('analysis.exportAnnotated')}</button>
+                  <Link className="btn small" to="/tactics?mode=mine">
+                    {t('analysis.practiceMistakes')}
+                  </Link>
+                  <button type="button" className="btn small" onClick={exportAnnotated}>
+                    {t('analysis.exportAnnotated')}
+                  </button>
                 </div>
               </section>
 
               <section className="card">
                 <MoveList
-                  moves={report.moves.map((m) => ({ san: m.san, classification: m.classification }))}
+                  moves={report.moves.map((m) => ({
+                    san: m.san,
+                    classification: m.classification,
+                  }))}
                   current={ply}
                   onSelect={setPly}
                   startPly={game.startFen.split(' ')[1] === 'b' ? 1 : 0}
@@ -397,21 +494,38 @@ export default function AnalysisPage() {
                         {Math.ceil(selected.ply / 2)}
                         {selected.color === 'w' ? '.' : '…'} {selected.san}
                       </strong>{' '}
-                      — <span className={`cls cls-${selected.classification}`}>{t(`classes.${selected.classification}`)}</span>{' '}
+                      —{' '}
+                      <span className={`cls cls-${selected.classification}`}>
+                        {t(`classes.${selected.classification}`)}
+                      </span>{' '}
                       <span className="muted small">({formatScore(selected.evalAfter)})</span>
                     </p>
                     <p>{renderFacts(facts, locale)}</p>
                     <label className="field" style={{ marginTop: 8 }}>
                       <span>{t('tutor.askLabel')}</span>
-                      <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder={t('tutor.askPlaceholder')} />
+                      <input
+                        type="text"
+                        value={question}
+                        onChange={(e) => setQuestion(e.target.value)}
+                        placeholder={t('tutor.askPlaceholder')}
+                      />
                     </label>
                     <div className="row" style={{ marginTop: 8 }}>
-                      <button type="button" className="btn small" onClick={() => void askTutor()} disabled={aiBusy || !token}>
+                      <button
+                        type="button"
+                        className="btn small"
+                        onClick={() => void askTutor()}
+                        disabled={aiBusy || !token}
+                      >
                         {aiBusy ? t('common.loading') : t('tutor.ask')}
                       </button>
                       {!token && <span className="small muted">{t('tutor.loginRequired')}</span>}
                     </div>
-                    {aiAnswer && <p className="status" style={{ marginTop: 8 }}>{aiAnswer}</p>}
+                    {aiAnswer && (
+                      <p className="status" style={{ marginTop: 8 }}>
+                        {aiAnswer}
+                      </p>
+                    )}
                   </>
                 ) : (
                   <p className="muted">{t('tutor.selectMove')}</p>

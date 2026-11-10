@@ -67,9 +67,12 @@ export function LineChart({
     const maxY = y1 + pad;
     const plotW = W - PAD.left - PAD.right;
     const plotH = height - PAD.top - PAD.bottom;
-    const sx = (i: number) => PAD.left + (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW);
+    const sx = (i: number) =>
+      PAD.left + (points.length === 1 ? plotW / 2 : (i / (points.length - 1)) * plotW);
     const sy = (v: number) => PAD.top + (1 - (v - minY) / (maxY - minY || 1)) * plotH;
-    const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(i).toFixed(1)},${sy(p.y).toFixed(1)}`).join(' ');
+    const line = points
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(i).toFixed(1)},${sy(p.y).toFixed(1)}`)
+      .join(' ');
     const base = sy(baseline ?? minY);
     const area = `${line} L${sx(points.length - 1).toFixed(1)},${base.toFixed(1)} L${sx(0).toFixed(1)},${base.toFixed(1)} Z`;
     return { sx, sy, line, area, ticks: niceTicks(minY, maxY), plotW, minY, maxY };
@@ -92,7 +95,10 @@ export function LineChart({
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
     const from = hover ?? current ?? points.length - 1;
-    const next = Math.max(0, Math.min(points.length - 1, from + (event.key === 'ArrowRight' ? 1 : -1)));
+    const next = Math.max(
+      0,
+      Math.min(points.length - 1, from + (event.key === 'ArrowRight' ? 1 : -1)),
+    );
     setHover(next);
     onSelect?.(next);
   }
@@ -131,7 +137,13 @@ export function LineChart({
         <path className="series-area" d={area} />
         <path className="series-line" d={line} />
         {current !== undefined && points[current] && (
-          <line className="marker-current" x1={sx(current)} x2={sx(current)} y1={PAD.top} y2={height - PAD.bottom} />
+          <line
+            className="marker-current"
+            x1={sx(current)}
+            x2={sx(current)}
+            y1={PAD.top}
+            y2={height - PAD.bottom}
+          />
         )}
         <circle className="end-dot" cx={sx(points.length - 1)} cy={sy(last.y)} r={4} />
         <text className="end-label" x={sx(points.length - 1) + 8} y={sy(last.y) + 4}>
@@ -139,7 +151,13 @@ export function LineChart({
         </text>
         {tooltipPoint && active !== null && (
           <>
-            <line className="crosshair" x1={sx(active)} x2={sx(active)} y1={PAD.top} y2={height - PAD.bottom} />
+            <line
+              className="crosshair"
+              x1={sx(active)}
+              x2={sx(active)}
+              y1={PAD.top}
+              y2={height - PAD.bottom}
+            />
             <circle className="end-dot" cx={sx(active)} cy={sy(tooltipPoint.y)} r={4} />
           </>
         )}
@@ -148,7 +166,10 @@ export function LineChart({
         <div
           className="tooltip"
           role="status"
-          style={{ left: `${(sx(active) / W) * 100}%`, top: `${(sy(tooltipPoint.y) / height) * 100}%` }}
+          style={{
+            left: `${(sx(active) / W) * 100}%`,
+            top: `${(sy(tooltipPoint.y) / height) * 100}%`,
+          }}
         >
           <strong>{tooltipPoint.display}</strong>
           <span className="muted">{tooltipPoint.label}</span>

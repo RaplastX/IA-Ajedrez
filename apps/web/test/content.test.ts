@@ -1,4 +1,11 @@
-import { buildOpeningIndex, drillSteps, playPuzzleMove, startPuzzle, type OpeningEntry, type Puzzle } from '@ia-ajedrez/core';
+import {
+  buildOpeningIndex,
+  drillSteps,
+  playPuzzleMove,
+  startPuzzle,
+  type OpeningEntry,
+  type Puzzle,
+} from '@ia-ajedrez/core';
 import { Chess } from 'chess.js';
 import { describe, expect, it } from 'vitest';
 import { ENDGAMES } from '../src/data/endgames';
@@ -27,7 +34,8 @@ describe('banco de puzzles', () => {
     expect(Math.min(...ratings)).toBeLessThan(700);
     expect(Math.max(...ratings)).toBeGreaterThan(2400);
     const themes = new Set((puzzles as Puzzle[]).flatMap((p) => p.themes));
-    for (const t of ['fork', 'pin', 'mateIn1', 'mateIn2', 'endgame', 'skewer']) expect(themes.has(t), t).toBe(true);
+    for (const t of ['fork', 'pin', 'mateIn1', 'mateIn2', 'endgame', 'skewer'])
+      expect(themes.has(t), t).toBe(true);
   });
 });
 
@@ -36,14 +44,16 @@ describe('repertorio', () => {
   it('todas las líneas son legales y tienen pasos para el usuario', () => {
     for (const line of REPERTOIRE) {
       const chess = new Chess();
-      for (const san of line.moves) expect(() => chess.move(san), `${line.id} ${san}`).not.toThrow();
+      for (const san of line.moves)
+        expect(() => chess.move(san), `${line.id} ${san}`).not.toThrow();
       expect(drillSteps(line).length).toBeGreaterThan(2);
     }
   });
   it('el índice de aperturas reconoce las líneas', () => {
     expect(index.size).toBeGreaterThan(3000);
     const chess = new Chess();
-    for (const san of ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'a6']) chess.move(san);
+    for (const san of ['e4', 'c5', 'Nf3', 'd6', 'd4', 'cxd4', 'Nxd4', 'Nf6', 'Nc3', 'a6'])
+      chess.move(san);
     expect(index.get(chess.fen().split(' ').slice(0, 4).join(' '))?.name).toMatch(/Najdorf/);
   });
 });
@@ -64,7 +74,8 @@ describe('lecciones', () => {
       for (const step of lesson.steps) {
         const chess = new Chess(step.fen);
         const legal = new Set(chess.moves().map(stripCheck));
-        for (const san of step.accept ?? []) expect(legal.has(san), `${lesson.id}: ${san}`).toBe(true);
+        for (const san of step.accept ?? [])
+          expect(legal.has(san), `${lesson.id}: ${san}`).toBe(true);
       }
     }
   });

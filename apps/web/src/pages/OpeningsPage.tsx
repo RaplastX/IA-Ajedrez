@@ -26,7 +26,7 @@ export default function OpeningsPage() {
   const [ply, setPly] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'good' | 'bad' | 'done'>('idle');
   const [arrow, setArrow] = useState<{ from: string; to: string } | null>(null);
-  const askedAt = useRef(Date.now());
+  const askedAt = useRef(0);
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -36,7 +36,8 @@ export default function OpeningsPage() {
 
   const dueCount = (l: RepertoireLine) =>
     drillSteps(l).filter((s) => !srsCards[s.cardId] || isDue(srsCards[s.cardId]!)).length;
-  const learned = (l: RepertoireLine) => drillSteps(l).filter((s) => (srsCards[s.cardId]?.repetitions ?? 0) >= 2).length;
+  const learned = (l: RepertoireLine) =>
+    drillSteps(l).filter((s) => (srsCards[s.cardId]?.repetitions ?? 0) >= 2).length;
 
   /** Avanza las jugadas del rival automáticamente hasta que le toque al usuario. */
   function advanceOpponent(fromPly: number) {
@@ -117,7 +118,9 @@ export default function OpeningsPage() {
                     <strong>{l.name}</strong>
                     <span className="chip">{l.eco}</span>
                   </div>
-                  <p className="small muted" style={{ margin: '6px 0' }}>{l.ideas?.[locale]}</p>
+                  <p className="small muted" style={{ margin: '6px 0' }}>
+                    {l.ideas?.[locale]}
+                  </p>
                   <span className="small">
                     {t('openings.learned', { learned: learned(l), total: drillSteps(l).length })} ·{' '}
                     {t('openings.due', { count: dueCount(l) })}
@@ -159,26 +162,59 @@ export default function OpeningsPage() {
         <div className="panel">
           <section className="card">
             <div className="row" role="tablist">
-              <button type="button" className="chip" aria-pressed={mode === 'learn'} onClick={() => { setMode('learn'); setPly(0); setFeedback('idle'); }}>
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={mode === 'learn'}
+                onClick={() => {
+                  setMode('learn');
+                  setPly(0);
+                  setFeedback('idle');
+                }}
+              >
                 {t('openings.learn')}
               </button>
-              <button type="button" className="chip" aria-pressed={mode === 'drill'} onClick={startDrill}>
+              <button
+                type="button"
+                className="chip"
+                aria-pressed={mode === 'drill'}
+                onClick={startDrill}
+              >
                 {t('openings.drill')}
               </button>
             </div>
             {mode === 'learn' ? (
               <>
-                <p className="small muted" style={{ marginTop: 12 }}>{t('openings.learnHelp')}</p>
+                <p className="small muted" style={{ marginTop: 12 }}>
+                  {t('openings.learnHelp')}
+                </p>
                 <div className="row">
-                  <button type="button" className="btn small" onClick={() => setPly((p) => Math.max(0, p - 1))}>◀</button>
-                  <button type="button" className="btn small" onClick={() => setPly((p) => Math.min(line.moves.length, p + 1))}>▶</button>
+                  <button
+                    type="button"
+                    className="btn small"
+                    onClick={() => setPly((p) => Math.max(0, p - 1))}
+                  >
+                    ◀
+                  </button>
+                  <button
+                    type="button"
+                    className="btn small"
+                    onClick={() => setPly((p) => Math.min(line.moves.length, p + 1))}
+                  >
+                    ▶
+                  </button>
                   <span className="small muted">
                     {ply}/{line.moves.length}
                   </span>
                 </div>
               </>
             ) : (
-              <p className={`status ${feedback === 'good' || feedback === 'done' ? 'good' : feedback === 'bad' ? 'bad' : ''}`} style={{ marginTop: 12 }} aria-live="polite" data-testid="drill-status">
+              <p
+                className={`status ${feedback === 'good' || feedback === 'done' ? 'good' : feedback === 'bad' ? 'bad' : ''}`}
+                style={{ marginTop: 12 }}
+                aria-live="polite"
+                data-testid="drill-status"
+              >
                 {feedback === 'idle' && t('openings.yourMove')}
                 {feedback === 'good' && t('openings.good')}
                 {feedback === 'bad' && t('openings.bad', { san: line.moves[ply] })}
@@ -186,7 +222,12 @@ export default function OpeningsPage() {
               </p>
             )}
             {mode === 'drill' && feedback === 'done' && (
-              <button type="button" className="btn primary" onClick={startDrill} style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={startDrill}
+                style={{ marginTop: 8 }}
+              >
                 {t('openings.again')}
               </button>
             )}

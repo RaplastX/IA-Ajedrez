@@ -38,7 +38,12 @@ export default function AchievementsPage() {
         {BADGES.map((b) => {
           const date = earned[b.id];
           return (
-            <div key={b.id} className={`card badge tier-${b.tier}${date ? '' : ' locked'}`} data-testid={`badge-${b.id}`} data-earned={!!date}>
+            <div
+              key={b.id}
+              className={`card badge tier-${b.tier}${date ? '' : ' locked'}`}
+              data-testid={`badge-${b.id}`}
+              data-earned={!!date}
+            >
               <div className="badge-icon" aria-hidden="true">
                 {ICONS[b.icon] ?? '⭐'}
               </div>
@@ -47,7 +52,11 @@ export default function AchievementsPage() {
                 {t(`badges.${b.id}.desc`)}
               </p>
               <p className="small" style={{ margin: '4px 0 0' }}>
-                {date ? t('achievements.earnedOn', { date: new Date(date).toLocaleDateString(i18n.language) }) : t('achievements.locked')}
+                {date
+                  ? t('achievements.earnedOn', {
+                      date: new Date(date).toLocaleDateString(i18n.language),
+                    })
+                  : t('achievements.locked')}
               </p>
             </div>
           );

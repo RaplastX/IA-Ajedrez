@@ -45,25 +45,42 @@ export interface Session {
 }
 
 export const api = {
-  register: (input: { email: string; password: string; displayName: string; acceptTerms: boolean; locale: string }) =>
-    request<Session>('/api/auth/register', { method: 'POST', json: input }),
+  register: (input: {
+    email: string;
+    password: string;
+    displayName: string;
+    acceptTerms: boolean;
+    locale: string;
+  }) => request<Session>('/api/auth/register', { method: 'POST', json: input }),
   login: (input: { email: string; password: string }) =>
     request<Session>('/api/auth/login', { method: 'POST', json: input }),
   guest: () => request<Session>('/api/auth/guest', { method: 'POST', json: {} }),
   me: () => request<{ user: AuthUser }>('/api/me'),
   exportData: () => request<unknown>('/api/me/export'),
   deleteAccount: () => request<void>('/api/me', { method: 'DELETE' }),
-  getProgress: () => request<{ data: Record<string, unknown> | null; updatedAt: string | null }>('/api/progress'),
-  putProgress: (data: unknown) => request<{ ok: true }>('/api/progress', { method: 'PUT', json: { data } }),
+  getProgress: () =>
+    request<{ data: Record<string, unknown> | null; updatedAt: string | null }>('/api/progress'),
+  putProgress: (data: unknown) =>
+    request<{ ok: true }>('/api/progress', { method: 'PUT', json: { data } }),
   submitPuzzle: (puzzleId: string, moves: string[], timeMs: number) =>
-    request<{ solved: boolean; rating: Rating }>(`/api/puzzles/${encodeURIComponent(puzzleId)}/attempts`, {
-      method: 'POST',
-      json: { moves, timeMs },
-    }),
-  uploadGame: (game: { pgn: string; result: string; mode: string; opponent: string; accuracy?: number }) =>
-    request<{ id: string }>('/api/games', { method: 'POST', json: game }),
+    request<{ solved: boolean; rating: Rating }>(
+      `/api/puzzles/${encodeURIComponent(puzzleId)}/attempts`,
+      {
+        method: 'POST',
+        json: { moves, timeMs },
+      },
+    ),
+  uploadGame: (game: {
+    pgn: string;
+    result: string;
+    mode: string;
+    opponent: string;
+    accuracy?: number;
+  }) => request<{ id: string }>('/api/games', { method: 'POST', json: game }),
   leaderboard: (board: 'puzzle' | 'xp') =>
-    request<{ entries: { rank: number; displayName: string; value: number }[] }>(`/api/leaderboard?board=${board}`),
+    request<{ entries: { rank: number; displayName: string; value: number }[] }>(
+      `/api/leaderboard?board=${board}`,
+    ),
   tutor: (input: {
     fen: string;
     playedUci: string;
@@ -71,7 +88,11 @@ export const api = {
     bestLine: string[];
     locale: string;
     question?: string;
-  }) => request<{ text: string; provider: string }>('/api/tutor/explain', { method: 'POST', json: input }),
+  }) =>
+    request<{ text: string; provider: string }>('/api/tutor/explain', {
+      method: 'POST',
+      json: input,
+    }),
   checkout: () => request<{ url: string }>('/api/payments/checkout', { method: 'POST', json: {} }),
 };
 

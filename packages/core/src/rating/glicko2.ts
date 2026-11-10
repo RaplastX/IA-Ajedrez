@@ -24,7 +24,8 @@ const MIN_RD = 45;
 const MAX_RD = 350;
 
 const g = (phi: number) => 1 / Math.sqrt(1 + (3 * phi * phi) / (Math.PI * Math.PI));
-const expected = (mu: number, muJ: number, phiJ: number) => 1 / (1 + Math.exp(-g(phiJ) * (mu - muJ)));
+const expected = (mu: number, muJ: number, phiJ: number) =>
+  1 / (1 + Math.exp(-g(phiJ) * (mu - muJ)));
 
 /** Actualiza un rating con los resultados de un periodo (puede ser un único puzzle). */
 export function updateRating(player: Rating, results: GameResult[], tau = TAU): Rating {

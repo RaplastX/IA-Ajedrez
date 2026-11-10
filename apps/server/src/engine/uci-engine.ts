@@ -4,7 +4,13 @@
  *  - Desarrollo/tests: Stockfish.js (WASM) del paquete npm `stockfish`, ejecutado con Node.
  * Mismo protocolo que el motor del navegador, así que reutiliza el parser de @ia-ajedrez/core.
  */
-import { parseBestMove, parseInfo, toWhitePerspective, type InfoLine, type Score } from '@ia-ajedrez/core';
+import {
+  parseBestMove,
+  parseInfo,
+  toWhitePerspective,
+  type InfoLine,
+  type Score,
+} from '@ia-ajedrez/core';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -21,7 +27,8 @@ function resolveCommand(stockfishPath?: string): { cmd: string; args: string[] }
   if (stockfishPath) return existsSync(stockfishPath) ? { cmd: stockfishPath, args: [] } : null;
   try {
     const require = createRequire(import.meta.url);
-    const findEngine = (require('stockfish') as { findEngine: (name: string) => string }).findEngine;
+    const findEngine = (require('stockfish') as { findEngine: (name: string) => string })
+      .findEngine;
     return { cmd: process.execPath, args: [findEngine('lite-single')] };
   } catch {
     return null;

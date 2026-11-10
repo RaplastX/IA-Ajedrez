@@ -15,7 +15,10 @@ const displayName = z
   .regex(/^[\p{L}\p{N} _.-]+$/u, 'Solo letras, números, espacios, _ . -');
 
 const registerSchema = z.object({
-  email: z.email().max(254).transform((e) => e.toLowerCase()),
+  email: z
+    .email()
+    .max(254)
+    .transform((e) => e.toLowerCase()),
   password: z.string().min(8).max(200),
   displayName,
   acceptTerms: z.literal(true, { error: 'terms_required' }),
@@ -39,9 +42,14 @@ export const publicUser = (u: UserRow) => ({
 
 export async function accountRoutes(app: FastifyInstance, ctx: AppContext) {
   const { db } = ctx;
-  const authLimit = { config: { rateLimit: { max: ctx.config.AUTH_RATE_LIMIT, timeWindow: '1 minute' } } };
+  const authLimit = {
+    config: { rateLimit: { max: ctx.config.AUTH_RATE_LIMIT, timeWindow: '1 minute' } },
+  };
 
-  const issue = (u: UserRow) => ({ token: app.jwt.sign({ sub: u.id, guest: u.isGuest }), user: publicUser(u) });
+  const issue = (u: UserRow) => ({
+    token: app.jwt.sign({ sub: u.id, guest: u.isGuest }),
+    user: publicUser(u),
+  });
 
   app.post('/api/auth/register', authLimit, async (request, reply) => {
     if ((request.body as { acceptTerms?: unknown } | undefined)?.acceptTerms !== true) {
@@ -53,7 +61,8 @@ export async function accountRoutes(app: FastifyInstance, ctx: AppContext) {
       .select({ email: users.email, displayName: users.displayName })
       .from(users)
       .where(or(eq(users.email, body.email), eq(users.displayName, body.displayName)));
-    if (clash.some((c) => c.email === body.email)) return reply.code(409).send({ error: 'email_taken' });
+    if (clash.some((c) => c.email === body.email))
+      return reply.code(409).send({ error: 'email_taken' });
     if (clash.length) return reply.code(409).send({ error: 'name_taken' });
     const [user] = await db
       .insert(users)
@@ -74,7 +83,10 @@ export async function accountRoutes(app: FastifyInstance, ctx: AppContext) {
     if (!body) return;
     const [user] = await db.select().from(users).where(eq(users.email, body.email));
     // Se verifica siempre algo para no revelar por el tiempo de respuesta si el correo existe.
-    const ok = await verifyPassword(body.password, user?.passwordHash ?? 'scrypt$16384$8$1$AAAA$AAAA');
+    const ok = await verifyPassword(
+      body.password,
+      user?.passwordHash ?? 'scrypt$16384$8$1$AAAA$AAAA',
+    );
     if (!user || !ok) return reply.code(401).send({ error: 'invalid_credentials' });
     return issue(user);
   });
@@ -113,7 +125,14 @@ export async function accountRoutes(app: FastifyInstance, ctx: AppContext) {
       .from(games)
       .where(or(eq(games.ownerId, id), eq(games.whiteId, id), eq(games.blackId, id)));
     const { passwordHash: _omit, ...profile } = user ?? ({} as UserRow);
-    return { exportedAt: new Date().toISOString(), profile, rating, progress: prog, puzzleAttempts: attempts, games: ownGames };
+    return {
+      exportedAt: new Date().toISOString(),
+      profile,
+      rating,
+      progress: prog,
+      puzzleAttempts: attempts,
+      games: ownGames,
+    };
   });
 
   // Derecho de supresión (art. 17 RGPD): borra la cuenta y anonimiza las partidas compartidas.

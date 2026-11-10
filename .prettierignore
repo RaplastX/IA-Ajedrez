@@ -6,3 +6,7 @@ data
 apps/web/src/data/*.json
 apps/server/drizzle
 package-lock.json
+ml
+apps/web/playwright-report
+apps/web/test-results
+*.md

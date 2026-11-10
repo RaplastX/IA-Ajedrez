@@ -1,14 +1,29 @@
 /* Service worker mínimo: caché del "app shell" y del motor para usar la app sin conexión. */
 const CACHE = 'ia-ajedrez-v1';
-const PRECACHE = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg', '/engine/stockfish.js', '/engine/stockfish.wasm'];
+const PRECACHE = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/engine/stockfish.js',
+  '/engine/stockfish.wasm',
+];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   );
 });
 

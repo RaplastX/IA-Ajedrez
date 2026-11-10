@@ -69,12 +69,16 @@ export function playPuzzleMove(state: PuzzleState, uci: string): PuzzleMoveResul
     return { state, correct: false };
   }
   // Normaliza promociones: "e7e8" sin pieza se considera dama.
-  const normalized = uci.length === 4 && expected?.length === 5 && expected.endsWith('q') ? `${uci}q` : uci;
+  const normalized =
+    uci.length === 4 && expected?.length === 5 && expected.endsWith('q') ? `${uci}q` : uci;
   if (normalized !== expected && !isMate) {
     return { state: { ...state, status: 'failed', mistakes: state.mistakes + 1 }, correct: false };
   }
   if (isMate || state.index + 1 >= state.puzzle.moves.length) {
-    return { state: { ...state, fen: chess.fen(), index: state.index + 1, status: 'solved' }, correct: true };
+    return {
+      state: { ...state, fen: chess.fen(), index: state.index + 1, status: 'solved' },
+      correct: true,
+    };
   }
   const reply = state.puzzle.moves[state.index + 1]!;
   chess.move(uciToMoveObject(reply)!);

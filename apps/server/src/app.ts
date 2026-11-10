@@ -72,13 +72,22 @@ export async function buildApp(config: Config, options: BuildOptions = {}): Prom
     config,
     db: database.db,
     tutor: options.tutor ?? createTutor(config),
-    stripe: options.stripe !== undefined ? options.stripe : config.STRIPE_SECRET_KEY ? new Stripe(config.STRIPE_SECRET_KEY) : null,
-    engine: () => (engine === undefined ? (engine = UciEngine.create(config.STOCKFISH_PATH)) : engine),
+    stripe:
+      options.stripe !== undefined
+        ? options.stripe
+        : config.STRIPE_SECRET_KEY
+          ? new Stripe(config.STRIPE_SECRET_KEY)
+          : null,
+    engine: () =>
+      engine === undefined ? (engine = UciEngine.create(config.STOCKFISH_PATH)) : engine,
     hub,
   };
 
   await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(cors, { origin: config.CORS_ORIGINS.split(',').map((o) => o.trim()), credentials: false });
+  await app.register(cors, {
+    origin: config.CORS_ORIGINS.split(',').map((o) => o.trim()),
+    credentials: false,
+  });
   await app.register(rateLimit, { max: 300, timeWindow: '1 minute' });
   await app.register(authPlugin, { secret: config.JWT_SECRET });
   await app.register(websocket, { options: { maxPayload: 4096 } });

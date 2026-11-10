@@ -15,6 +15,19 @@ import wQ from '../../assets/pieces/Chess_qlt45.svg';
 import bR from '../../assets/pieces/Chess_rdt45.svg';
 import wR from '../../assets/pieces/Chess_rlt45.svg';
 
-export const PIECE_IMAGES: Record<string, string> = { wK, wQ, wR, wB, wN, wP, bK, bQ, bR, bB, bN, bP };
+export const PIECE_IMAGES: Record<string, string> = {
+  wK,
+  wQ,
+  wR,
+  wB,
+  wN,
+  wP,
+  bK,
+  bQ,
+  bR,
+  bB,
+  bN,
+  bP,
+};
 
 export const pieceKey = (color: 'w' | 'b', type: string) => `${color}${type.toUpperCase()}`;

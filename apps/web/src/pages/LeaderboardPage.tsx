@@ -10,21 +10,34 @@ export default function LeaderboardPage() {
   const { t } = useTranslation();
   const user = useSettings((s) => s.user);
   const [board, setBoard] = useState<Board>('puzzle');
-  const [entries, setEntries] = useState<{ rank: number; displayName: string; value: number }[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // El resultado guarda a qué tabla pertenece: así "cargando" se deriva sin setState en el efecto.
+  const [result, setResult] = useState<{
+    board: Board;
+    entries?: { rank: number; displayName: string; value: number }[];
+    error?: string;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
-    setEntries(null);
-    setError(null);
     api
       .leaderboard(board)
-      .then((res) => active && setEntries(res.entries))
-      .catch((e) => active && setError(e instanceof ApiError && e.status === 0 ? 'offline' : 'generic'));
+      .then((res) => active && setResult({ board, entries: res.entries }))
+      .catch(
+        (e) =>
+          active &&
+          setResult({
+            board,
+            error: e instanceof ApiError && e.status === 0 ? 'offline' : 'generic',
+          }),
+      );
     return () => {
       active = false;
     };
   }, [board]);
+
+  const current = result?.board === board ? result : null;
+  const entries = current?.entries ?? null;
+  const error = current?.error ?? null;
 
   return (
     <>
@@ -35,7 +48,13 @@ export default function LeaderboardPage() {
         </div>
         <div className="row" role="tablist">
           {(['puzzle', 'xp'] as const).map((b) => (
-            <button key={b} type="button" className="chip" aria-pressed={board === b} onClick={() => setBoard(b)}>
+            <button
+              key={b}
+              type="button"
+              className="chip"
+              aria-pressed={board === b}
+              onClick={() => setBoard(b)}
+            >
               {t(`leaderboard.boards.${b}`)}
             </button>
           ))}
@@ -44,7 +63,8 @@ export default function LeaderboardPage() {
       <section className="card">
         {error && (
           <p className="muted">
-            {t(`leaderboard.errors.${error}`)} {!user && <Link to="/settings">{t('leaderboard.login')}</Link>}
+            {t(`leaderboard.errors.${error}`)}{' '}
+            {!user && <Link to="/settings">{t('leaderboard.login')}</Link>}
           </p>
         )}
         {!error && !entries && <p className="muted">{t('common.loading')}</p>}
@@ -60,7 +80,10 @@ export default function LeaderboardPage() {
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr key={e.rank} style={user?.displayName === e.displayName ? { fontWeight: 700 } : undefined}>
+                <tr
+                  key={e.rank}
+                  style={user?.displayName === e.displayName ? { fontWeight: 700 } : undefined}
+                >
                   <td>{e.rank}</td>
                   <td>{e.displayName}</td>
                   <td className="num">{Math.round(e.value)}</td>

@@ -49,7 +49,9 @@ export function buildUserPrompt(req: TutorRequest): string {
     `Hechos del motor: ${renderFacts(req.facts, req.locale) || '(ninguno)'}`,
     `Hechos en bruto: ${JSON.stringify(req.facts)}`,
     `Mejor variante del motor (SAN): ${req.bestLine.join(' ') || '(no disponible)'}`,
-    req.question ? `<pregunta_del_alumno>${req.question}</pregunta_del_alumno>` : 'El alumno no ha hecho ninguna pregunta: explica la jugada.',
+    req.question
+      ? `<pregunta_del_alumno>${req.question}</pregunta_del_alumno>`
+      : 'El alumno no ha hecho ninguna pregunta: explica la jugada.',
   ].join('\n');
 }
 
@@ -117,8 +119,12 @@ export function createTutor(config: {
   HF_TGI_URL?: string;
 }): TutorProvider {
   if (config.TUTOR_PROVIDER === 'anthropic') {
-    return new ClaudeTutor(new Anthropic(config.ANTHROPIC_API_KEY ? { apiKey: config.ANTHROPIC_API_KEY } : {}), config.TUTOR_MODEL);
+    return new ClaudeTutor(
+      new Anthropic(config.ANTHROPIC_API_KEY ? { apiKey: config.ANTHROPIC_API_KEY } : {}),
+      config.TUTOR_MODEL,
+    );
   }
-  if (config.TUTOR_PROVIDER === 'hf-tgi' && config.HF_TGI_URL) return new HuggingFaceTgiTutor(config.HF_TGI_URL);
+  if (config.TUTOR_PROVIDER === 'hf-tgi' && config.HF_TGI_URL)
+    return new HuggingFaceTgiTutor(config.HF_TGI_URL);
   return rulesTutor;
 }

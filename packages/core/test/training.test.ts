@@ -48,7 +48,9 @@ describe('dificultad adaptativa (bandido)', () => {
 
   it('con los priors tiende a ejercicios accesibles', () => {
     const random = mulberry32(7);
-    const picks = Array.from({ length: 300 }, () => chooseDifficultyArm(createDifficultyModel(), random));
+    const picks = Array.from({ length: 300 }, () =>
+      chooseDifficultyArm(createDifficultyModel(), random),
+    );
     const counts = new Map<number, number>();
     for (const p of picks) counts.set(p, (counts.get(p) ?? 0) + 1);
     // El brazo más difícil (+300, prior 20 % de acierto) casi nunca está cerca del 70 % objetivo.
@@ -72,7 +74,11 @@ describe('debilidades', () => {
   it('prioriza la fase donde se cometen errores en partidas', () => {
     const recs = recommendThemes(
       {},
-      { catalog: ['opening', 'middlegame', 'endgame'], phaseErrors: { endgame: 8, opening: 1 }, limit: 1 },
+      {
+        catalog: ['opening', 'middlegame', 'endgame'],
+        phaseErrors: { endgame: 8, opening: 1 },
+        limit: 1,
+      },
     );
     expect(recs[0]).toMatchObject({ theme: 'endgame', reason: 'gameErrors' });
   });

@@ -21,6 +21,7 @@ useSettings.subscribe((state, prev) => {
     document.documentElement.lang = state.language;
   }
 });
-if (typeof document !== 'undefined') document.documentElement.lang = useSettings.getState().language;
+if (typeof document !== 'undefined')
+  document.documentElement.lang = useSettings.getState().language;
 
 export default i18n;

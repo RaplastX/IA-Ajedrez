@@ -46,12 +46,14 @@ export default function TacticsPage() {
   const [state, setState] = useState<PuzzleState | null>(null);
   const [fen, setFen] = useState(new Chess().fen());
   const [lastMove, setLastMove] = useState<[string, string] | null>(null);
-  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong' | 'solved' | 'failed'>('idle');
+  const [feedback, setFeedback] = useState<'idle' | 'correct' | 'wrong' | 'solved' | 'failed'>(
+    'idle',
+  );
   const [hint, setHint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [ratingDelta, setRatingDelta] = useState<number | null>(null);
   const arm = useRef<DifficultyArm>(0);
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef(0);
   const recorded = useRef(false);
   const userMoves = useRef<string[]>([]);
   const timers = useRef<number[]>([]);
@@ -93,7 +95,8 @@ export default function TacticsPage() {
       arm.current = chooseDifficultyArm(progress.difficulty);
       const target = progress.puzzleRating.rating + arm.current;
       const seen = new Set(progress.seenPuzzles);
-      puzzle = pickPuzzle(BANK, target, { theme, exclude: seen }) ?? pickPuzzle(BANK, target, { theme });
+      puzzle =
+        pickPuzzle(BANK, target, { theme, exclude: seen }) ?? pickPuzzle(BANK, target, { theme });
     }
     if (puzzle) begin(puzzle);
     else setState(null);
@@ -111,7 +114,9 @@ export default function TacticsPage() {
     let serverRating;
     if (token && !isPersonal) {
       try {
-        serverRating = (await api.submitPuzzle(puzzle.id, userMoves.current, Date.now() - startedAt.current)).rating;
+        serverRating = (
+          await api.submitPuzzle(puzzle.id, userMoves.current, Date.now() - startedAt.current)
+        ).rating;
       } catch {
         serverRating = undefined;
       }
@@ -170,12 +175,15 @@ export default function TacticsPage() {
     setFeedback('failed');
     setBusy(true);
     puzzle.moves.slice(1).forEach((uci, i) => {
-      later(() => {
-        current = applyUci(current, uci);
-        setFen(current);
-        setLastMove([uci.slice(0, 2), uci.slice(2, 4)]);
-        if (i === puzzle.moves.length - 2) setBusy(false);
-      }, 700 * (i + 1));
+      later(
+        () => {
+          current = applyUci(current, uci);
+          setFen(current);
+          setLastMove([uci.slice(0, 2), uci.slice(2, 4)]);
+          if (i === puzzle.moves.length - 2) setBusy(false);
+        },
+        700 * (i + 1),
+      );
     });
     setState({ ...state, status: 'failed' });
   }
@@ -202,9 +210,20 @@ export default function TacticsPage() {
         </span>
       </div>
 
-      <div className="row" style={{ marginBottom: 12 }} role="tablist" aria-label={t('tactics.modes')}>
+      <div
+        className="row"
+        style={{ marginBottom: 12 }}
+        role="tablist"
+        aria-label={t('tactics.modes')}
+      >
         {(['adaptive', 'daily', 'mine'] as const).map((m) => (
-          <button key={m} type="button" className="chip" aria-pressed={mode === m} onClick={() => setMode(m)}>
+          <button
+            key={m}
+            type="button"
+            className="chip"
+            aria-pressed={mode === m}
+            onClick={() => setMode(m)}
+          >
             {t(`tactics.mode.${m}`)}
             {m === 'mine' && personal.length > 0 ? ` (${personal.length})` : ''}
           </button>
@@ -214,14 +233,26 @@ export default function TacticsPage() {
       {mode === 'adaptive' && (
         <details style={{ marginBottom: 12 }}>
           <summary className="small muted" style={{ cursor: 'pointer' }}>
-            {t('tactics.themeFilter')}: <strong>{theme ? t(`themes.${theme}`) : t('tactics.allThemes')}</strong>
+            {t('tactics.themeFilter')}:{' '}
+            <strong>{theme ? t(`themes.${theme}`) : t('tactics.allThemes')}</strong>
           </summary>
           <div className="row" style={{ marginTop: 8 }}>
-            <button type="button" className="chip" aria-pressed={!theme} onClick={() => setMode('adaptive')}>
+            <button
+              type="button"
+              className="chip"
+              aria-pressed={!theme}
+              onClick={() => setMode('adaptive')}
+            >
               {t('tactics.allThemes')}
             </button>
             {THEME_CATALOG.map((th) => (
-              <button key={th} type="button" className="chip" aria-pressed={theme === th} onClick={() => setMode('adaptive', th)}>
+              <button
+                key={th}
+                type="button"
+                className="chip"
+                aria-pressed={theme === th}
+                onClick={() => setMode('adaptive', th)}
+              >
                 {t(`themes.${th}`)}
               </button>
             ))}
@@ -245,8 +276,13 @@ export default function TacticsPage() {
           />
           <div className="panel">
             <section className="card">
-              <p className={`status ${feedback === 'solved' || feedback === 'correct' ? 'good' : feedback === 'wrong' || feedback === 'failed' ? 'bad' : ''}`} aria-live="polite" data-testid="puzzle-status">
-                {feedback === 'idle' && t(playerColor === 'w' ? 'tactics.findWhite' : 'tactics.findBlack')}
+              <p
+                className={`status ${feedback === 'solved' || feedback === 'correct' ? 'good' : feedback === 'wrong' || feedback === 'failed' ? 'bad' : ''}`}
+                aria-live="polite"
+                data-testid="puzzle-status"
+              >
+                {feedback === 'idle' &&
+                  t(playerColor === 'w' ? 'tactics.findWhite' : 'tactics.findBlack')}
                 {feedback === 'correct' && t('tactics.correct')}
                 {feedback === 'wrong' && t('tactics.wrong')}
                 {feedback === 'solved' && t('tactics.solved')}
@@ -254,22 +290,36 @@ export default function TacticsPage() {
               </p>
               {ratingDelta !== null && (
                 <p className="small" data-testid="rating-delta">
-                  {t('tactics.ratingChange', { delta: `${ratingDelta >= 0 ? '+' : ''}${ratingDelta}` })}
+                  {t('tactics.ratingChange', {
+                    delta: `${ratingDelta >= 0 ? '+' : ''}${ratingDelta}`,
+                  })}
                 </p>
               )}
               {finished && state && (
                 <p className="small muted">
                   {t('tactics.puzzleInfo', { rating: state.puzzle.rating })} ·{' '}
-                  {state.puzzle.themes.map((th) => t(`themes.${th}`, { defaultValue: th })).join(', ')}
+                  {state.puzzle.themes
+                    .map((th) => t(`themes.${th}`, { defaultValue: th }))
+                    .join(', ')}
                 </p>
               )}
               <div className="row" style={{ marginTop: 12 }}>
                 {!finished && (
                   <>
-                    <button type="button" className="btn" disabled={busy || !state} onClick={() => state && setHint(puzzleHint(state))}>
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={busy || !state}
+                      onClick={() => state && setHint(puzzleHint(state))}
+                    >
                       {t('tactics.hint')}
                     </button>
-                    <button type="button" className="btn" disabled={busy || !state} onClick={showSolution}>
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={busy || !state}
+                      onClick={showSolution}
+                    >
                       {t('tactics.showSolution')}
                     </button>
                   </>
@@ -283,7 +333,11 @@ export default function TacticsPage() {
               {finished && state && !state.puzzle.id.startsWith('mine-') && (
                 <p className="small muted" style={{ marginTop: 12 }}>
                   {t('tactics.source')}{' '}
-                  <a href={`https://lichess.org/training/${state.puzzle.id}`} target="_blank" rel="noreferrer">
+                  <a
+                    href={`https://lichess.org/training/${state.puzzle.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     lichess.org/training/{state.puzzle.id}
                   </a>
                 </p>

@@ -51,6 +51,8 @@ interface DragState {
   x: number;
   y: number;
   moved: boolean;
+  /** Geometría del tablero al empezar el arrastre (no se lee el DOM durante el render). */
+  rect: { left: number; top: number; size: number };
 }
 
 export function Board({
@@ -132,8 +134,16 @@ export function Board({
   function onPointerDown(event: ReactPointerEvent, square: string) {
     if (event.button !== 0 || !legalByFrom.has(square) || promotion) return;
     const piece = chess.get(square as Square);
-    if (!piece) return;
-    setDrag({ from: square, piece: pieceKey(piece.color, piece.type), x: event.clientX, y: event.clientY, moved: false });
+    const box = boardRef.current?.getBoundingClientRect();
+    if (!piece || !box) return;
+    setDrag({
+      from: square,
+      piece: pieceKey(piece.color, piece.type),
+      x: event.clientX,
+      y: event.clientY,
+      moved: false,
+      rect: { left: box.left, top: box.top, size: box.width / 8 },
+    });
   }
 
   function onPointerMove(event: ReactPointerEvent) {
@@ -158,9 +168,6 @@ export function Board({
       setSelected(from);
     }
   }
-
-  const box = boardRef.current?.getBoundingClientRect();
-  const squareSize = box ? box.width / 8 : 0;
 
   const squares = [];
   for (let row = 0; row < 8; row++) {
@@ -226,7 +233,15 @@ export function Board({
           <svg className="arrows" viewBox="0 0 8 8" aria-hidden="true">
             <defs>
               {(['best', 'played', 'hint'] as const).map((c) => (
-                <marker key={c} id={`head-${c}`} markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto">
+                <marker
+                  key={c}
+                  id={`head-${c}`}
+                  markerWidth="3"
+                  markerHeight="3"
+                  refX="1.5"
+                  refY="1.5"
+                  orient="auto"
+                >
                   <path d="M0,0 L3,1.5 L0,3 z" className={`arrow-${c}`} />
                 </marker>
               ))}
@@ -251,16 +266,16 @@ export function Board({
             })}
           </svg>
         )}
-        {drag?.moved && squareSize > 0 && (
+        {drag?.moved && (
           <img
             className="drag-ghost"
             src={PIECE_IMAGES[drag.piece]}
             alt=""
             style={{
-              width: squareSize,
-              height: squareSize,
-              left: drag.x - (box?.left ?? 0) - squareSize / 2,
-              top: drag.y - (box?.top ?? 0) - squareSize / 2,
+              width: drag.rect.size,
+              height: drag.rect.size,
+              left: drag.x - drag.rect.left - drag.rect.size / 2,
+              top: drag.y - drag.rect.top - drag.rect.size / 2,
             }}
           />
         )}

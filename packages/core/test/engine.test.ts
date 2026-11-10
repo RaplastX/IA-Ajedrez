@@ -29,14 +29,20 @@ describe('UCI', () => {
   });
 
   it('analiza mates e ignora líneas sin puntuación', () => {
-    expect(parseInfo('info depth 5 score mate -3 pv h7h6')?.score).toEqual({ type: 'mate', value: -3 });
+    expect(parseInfo('info depth 5 score mate -3 pv h7h6')?.score).toEqual({
+      type: 'mate',
+      value: -3,
+    });
     expect(parseInfo('info depth 10 currmove e2e4 currmovenumber 1')).toBeNull();
     expect(parseInfo('info string NNUE evaluation enabled')).toBeNull();
     expect(parseInfo('readyok')).toBeNull();
   });
 
   it('analiza bestmove', () => {
-    expect(parseBestMove('bestmove e2e4 ponder e7e5')).toEqual({ bestmove: 'e2e4', ponder: 'e7e5' });
+    expect(parseBestMove('bestmove e2e4 ponder e7e5')).toEqual({
+      bestmove: 'e2e4',
+      ponder: 'e7e5',
+    });
     expect(parseBestMove('bestmove (none)')).toEqual({ bestmove: null });
     expect(parseBestMove('info depth 1')).toBeNull();
   });

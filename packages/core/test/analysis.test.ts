@@ -47,7 +47,9 @@ describe('fase y material', () => {
   it('detecta fases', () => {
     expect(gamePhase('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1')).toBe('opening');
     expect(gamePhase('8/5k2/8/8/8/2R5/5K2/8 w - - 0 50')).toBe('endgame');
-    expect(gamePhase('r1bq1rk1/pp3ppp/2n2n2/3p4/3P4/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 20')).toBe('middlegame');
+    expect(gamePhase('r1bq1rk1/pp3ppp/2n2n2/3p4/3P4/2N2N2/PP3PPP/R1BQ1RK1 w - - 0 20')).toBe(
+      'middlegame',
+    );
   });
   it('calcula el balance', () => {
     expect(materialBalance('4k3/8/8/8/8/8/8/R3K3 w - - 0 1')).toBe(5);

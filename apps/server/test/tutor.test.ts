@@ -31,7 +31,10 @@ describe('tutor por reglas', () => {
 
 describe('tutor con Claude', () => {
   it('envía modelo, fallback ante rechazos, esfuerzo bajo y la pregunta delimitada', async () => {
-    const { client, create } = stubClient({ stop_reason: 'end_turn', content: [{ type: 'text', text: 'Tu dama queda colgada.' }] });
+    const { client, create } = stubClient({
+      stop_reason: 'end_turn',
+      content: [{ type: 'text', text: 'Tu dama queda colgada.' }],
+    });
     const tutor = new ClaudeTutor(client, 'claude-opus-5-5');
     expect(await tutor.explain(req)).toBe('Tu dama queda colgada.');
     const params = create.mock.calls[0]![0];
@@ -47,13 +50,19 @@ describe('tutor con Claude', () => {
 
   it('si el modelo rechaza, responde el tutor por reglas', async () => {
     const { client } = stubClient({ stop_reason: 'refusal', content: [] });
-    expect(await new ClaudeTutor(client, 'claude-opus-5-5').explain(req)).toContain('Tu dama en g5');
+    expect(await new ClaudeTutor(client, 'claude-opus-5-5').explain(req)).toContain(
+      'Tu dama en g5',
+    );
   });
 });
 
 describe('tutor con Hugging Face TGI', () => {
   it('llama a /generate y usa el texto generado', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(new Response(JSON.stringify({ generated_text: ' Explicación propia ' }), { status: 200 }));
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ generated_text: ' Explicación propia ' }), { status: 200 }),
+      );
     const tutor = new HuggingFaceTgiTutor('http://tgi:8080/', fetchImpl as unknown as typeof fetch);
     expect(await tutor.explain(req)).toBe('Explicación propia');
     expect(fetchImpl.mock.calls[0]![0]).toBe('http://tgi:8080/generate');
@@ -65,7 +74,13 @@ describe('selección de proveedor', () => {
   it('usa reglas por defecto o si falta configuración', () => {
     expect(createTutor({ TUTOR_PROVIDER: 'rules', TUTOR_MODEL: 'x' }).name).toBe('rules');
     expect(createTutor({ TUTOR_PROVIDER: 'hf-tgi', TUTOR_MODEL: 'x' }).name).toBe('rules');
-    expect(createTutor({ TUTOR_PROVIDER: 'anthropic', TUTOR_MODEL: 'claude-opus-5-5', ANTHROPIC_API_KEY: 'k' }).name).toBe('anthropic');
+    expect(
+      createTutor({
+        TUTOR_PROVIDER: 'anthropic',
+        TUTOR_MODEL: 'claude-opus-5-5',
+        ANTHROPIC_API_KEY: 'k',
+      }).name,
+    ).toBe('anthropic');
   });
 
   it('el prompt incluye los hechos del motor', () => {

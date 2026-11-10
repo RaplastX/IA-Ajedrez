@@ -22,7 +22,9 @@ const opt = (name, fallback) => {
   return i >= 0 ? args[i + 1] : fallback;
 };
 if (!input) {
-  console.error('Uso: node scripts/build-puzzles.mjs <lichess_db_puzzle.csv[.zst]> [--per-bucket N] [--out file]');
+  console.error(
+    'Uso: node scripts/build-puzzles.mjs <lichess_db_puzzle.csv[.zst]> [--per-bucket N] [--out file]',
+  );
   process.exit(1);
 }
 const perBucket = Number(opt('per-bucket', '30'));
@@ -30,13 +32,51 @@ const out = resolve(opt('out', 'apps/web/src/data/puzzles.json'));
 
 // Temas que la app muestra como categorías de entrenamiento.
 const TRAINING_THEMES = [
-  'mateIn1', 'mateIn2', 'mateIn3', 'fork', 'pin', 'skewer', 'discoveredAttack', 'doubleCheck',
-  'hangingPiece', 'trappedPiece', 'sacrifice', 'deflection', 'attraction', 'clearance',
-  'interference', 'xRayAttack', 'zugzwang', 'backRankMate', 'smotheredMate', 'promotion',
-  'advancedPawn', 'quietMove', 'defensiveMove', 'endgame', 'rookEndgame', 'pawnEndgame',
-  'opening', 'middlegame', 'kingsideAttack', 'capturingDefender', 'exposedKing',
+  'mateIn1',
+  'mateIn2',
+  'mateIn3',
+  'fork',
+  'pin',
+  'skewer',
+  'discoveredAttack',
+  'doubleCheck',
+  'hangingPiece',
+  'trappedPiece',
+  'sacrifice',
+  'deflection',
+  'attraction',
+  'clearance',
+  'interference',
+  'xRayAttack',
+  'zugzwang',
+  'backRankMate',
+  'smotheredMate',
+  'promotion',
+  'advancedPawn',
+  'quietMove',
+  'defensiveMove',
+  'endgame',
+  'rookEndgame',
+  'pawnEndgame',
+  'opening',
+  'middlegame',
+  'kingsideAttack',
+  'capturingDefender',
+  'exposedKing',
 ];
-const IGNORED_THEMES = new Set(['short', 'long', 'veryLong', 'oneMove', 'master', 'masterVsMaster', 'superGM', 'crushing', 'advantage', 'equality', 'mate']);
+const IGNORED_THEMES = new Set([
+  'short',
+  'long',
+  'veryLong',
+  'oneMove',
+  'master',
+  'masterVsMaster',
+  'superGM',
+  'crushing',
+  'advantage',
+  'equality',
+  'mate',
+]);
 
 let stream = createReadStream(input);
 if (input.endsWith('.zst')) stream = stream.pipe(createZstdDecompress());
@@ -56,7 +96,8 @@ for await (const line of rl) {
   const cols = line.split(',');
   const row = Object.fromEntries(header.map((h, i) => [h, cols[i] ?? '']));
   const rating = Number(row.Rating);
-  if (Number(row.Popularity) < 88 || Number(row.NbPlays) < 800 || Number(row.RatingDeviation) > 85) continue;
+  if (Number(row.Popularity) < 88 || Number(row.NbPlays) < 800 || Number(row.RatingDeviation) > 85)
+    continue;
   if (rating < 500 || rating >= 2900) continue;
   const themes = row.Themes.split(' ').filter((t) => t && !IGNORED_THEMES.has(t));
   if (!themes.some((t) => TRAINING_THEMES.includes(t))) continue;

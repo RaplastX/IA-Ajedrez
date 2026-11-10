@@ -73,7 +73,8 @@ const dayDiff = (a: string, b: string) =>
 
 /** Registra actividad en `today` (YYYY-MM-DD) y devuelve la racha actualizada. */
 export function touchStreak(streak: Streak, today: string): Streak {
-  if (!streak.lastActiveDay) return { current: 1, longest: Math.max(1, streak.longest), lastActiveDay: today };
+  if (!streak.lastActiveDay)
+    return { current: 1, longest: Math.max(1, streak.longest), lastActiveDay: today };
   const diff = dayDiff(streak.lastActiveDay, today);
   if (diff <= 0) return streak;
   const current = diff === 1 ? streak.current + 1 : 1;

@@ -1,4 +1,10 @@
-import { challengeProgress, dailyChallenges, levelFromXp, rankTitle, recommendThemes } from '@ia-ajedrez/core';
+import {
+  challengeProgress,
+  dailyChallenges,
+  levelFromXp,
+  rankTitle,
+  recommendThemes,
+} from '@ia-ajedrez/core';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { THEME_CATALOG } from '../data/themes';
@@ -19,7 +25,11 @@ export function HomePage() {
   const counters = daily.day === day ? daily.counters : {};
   const completed = daily.day === day ? daily.completed : [];
   const challenges = dailyChallenges(day);
-  const recommendations = recommendThemes(themeStats, { catalog: [...THEME_CATALOG], phaseErrors, limit: 3 });
+  const recommendations = recommendThemes(themeStats, {
+    catalog: [...THEME_CATALOG],
+    phaseErrors,
+    limit: 3,
+  });
 
   return (
     <>
@@ -44,7 +54,13 @@ export function HomePage() {
           <span className="value" data-testid="level">
             {level.level} · {t(`ranks.${rankTitle(level.level)}`)}
           </span>
-          <div className="progress" role="progressbar" aria-valuenow={Math.round(level.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+          <div
+            className="progress"
+            role="progressbar"
+            aria-valuenow={Math.round(level.progress * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
             <span style={{ width: `${level.progress * 100}%` }} />
           </div>
           <span className="small muted">
@@ -61,7 +77,9 @@ export function HomePage() {
           <span className="value" data-testid="puzzle-rating">
             {stats.puzzleRating}
           </span>
-          <span className="small muted">{t('home.puzzlesSolved', { count: stats.puzzlesSolved })}</span>
+          <span className="small muted">
+            {t('home.puzzlesSolved', { count: stats.puzzlesSolved })}
+          </span>
         </section>
       </div>
 
@@ -128,7 +146,12 @@ export function HomePage() {
           { to: '/online', key: 'online' },
           { to: '/progress', key: 'progress' },
         ].map((item) => (
-          <Link key={item.to} to={item.to} className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link
+            key={item.to}
+            to={item.to}
+            className="card"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
             <h3>{t(`nav.${item.key}`)}</h3>
             <p className="small muted">{t(`home.cards.${item.key}`)}</p>
           </Link>

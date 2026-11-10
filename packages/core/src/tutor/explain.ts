@@ -44,7 +44,12 @@ const pawnsForMover = (score: Score, color: 'w' | 'b') => {
 };
 
 /** Balance material (en peones, para `color`) tras seguir la variante hasta un punto "tranquilo". */
-export function materialAfterLine(fen: string, line: string[], color: 'w' | 'b', maxPlies = 6): number {
+export function materialAfterLine(
+  fen: string,
+  line: string[],
+  color: 'w' | 'b',
+  maxPlies = 6,
+): number {
   const chess = new Chess(fen);
   const sign = color === 'w' ? 1 : -1;
   const start = materialBalance(fen) * sign;
@@ -103,7 +108,8 @@ function forkTargets(fen: string, uci: string): string[] {
     for (const cell of row) {
       if (!cell || cell.color === mover || cell.type === 'p') continue;
       if (!chess.attackers(cell.square, mover).includes(move.to as Square)) continue;
-      if (cell.type === 'k' || pieceValue(cell.type) > movedValue) targets.push(`${cell.type}${cell.square}`);
+      if (cell.type === 'k' || pieceValue(cell.type) > movedValue)
+        targets.push(`${cell.type}${cell.square}`);
     }
   }
   return targets.length >= 2 ? targets : [];
@@ -140,7 +146,9 @@ export function explainMove(input: ExplainInput): TutorFact[] {
   // Mate que teníamos y no vimos.
   if (input.evalBefore.type === 'mate' && input.bestUci && input.bestUci !== input.playedUci) {
     const mateForUs = color === 'w' ? input.evalBefore.value > 0 : input.evalBefore.value < 0;
-    const stillMate = input.evalAfter.type === 'mate' && Math.sign(input.evalAfter.value) === Math.sign(input.evalBefore.value);
+    const stillMate =
+      input.evalAfter.type === 'mate' &&
+      Math.sign(input.evalAfter.value) === Math.sign(input.evalBefore.value);
     if (mateForUs && !stillMate) {
       const san = uciLineToSan(input.fenBefore, [input.bestUci])[0] ?? input.bestUci;
       facts.push({ code: 'missedMate', moves: Math.abs(input.evalBefore.value), san });
@@ -149,7 +157,8 @@ export function explainMove(input: ExplainInput): TutorFact[] {
 
   if (isErrorMove) {
     const hanging = hangingPieces(chess, color)[0];
-    if (hanging && input.classification !== 'inaccuracy') facts.push({ code: 'hangingPiece', ...hanging });
+    if (hanging && input.classification !== 'inaccuracy')
+      facts.push({ code: 'hangingPiece', ...hanging });
     if (input.replyPv?.length) {
       const loss = materialAfterLine(chess.fen(), input.replyPv, color);
       if (loss <= -2) {
@@ -164,7 +173,9 @@ export function explainMove(input: ExplainInput): TutorFact[] {
       const san = uciLineToSan(input.fenBefore, [input.bestUci])[0] ?? input.bestUci;
       const fork = forkTargets(input.fenBefore, input.bestUci);
       if (fork.length) facts.push({ code: 'bestWasFork', san, targets: fork });
-      const gain = input.bestPv?.length ? materialAfterLine(input.fenBefore, input.bestPv, color) : 0;
+      const gain = input.bestPv?.length
+        ? materialAfterLine(input.fenBefore, input.bestPv, color)
+        : 0;
       if (gain >= 2) facts.push({ code: 'bestWinsMaterial', san, pawns: gain });
       if (!facts.some((f) => f.code === 'missedMate')) {
         facts.push({
