@@ -1,6 +1,6 @@
 /**
- * Primitivas de pixel art para dibujar efectos en un canvas de baja resolución (128×128 para
- * el tablero: 16×16 píxeles de juego por casilla) que luego se escala sin suavizado.
+ * Primitivas de pixel art para dibujar efectos en un canvas de baja resolución (256×256 para
+ * el tablero: 32×32 píxeles de juego por casilla) que luego se escala sin suavizado.
  * Paleta limitada y contornos duros, como en los juegos retro: nada de degradados ni brillos.
  */
 

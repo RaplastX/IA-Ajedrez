@@ -29,11 +29,8 @@ export interface AttackOptions {
 const canAnimate = (el: Element | null): boolean =>
   !!el && typeof (el as HTMLElement).animate === 'function';
 
-/** Cuántos "cuadros" tiene una animación de `ms` milisegundos (movimiento a saltos). */
-const stepsFor = (ms: number) => `steps(${Math.max(4, Math.round((ms / 1000) * 14))}, end)`;
-
 /** Teñido de color de todo el tablero, como el destello rojo/naranja de Shotgun King. */
-export function flashBoard(board: HTMLElement, color: string, strength = 0.55) {
+export function flashBoard(board: HTMLElement, color: string, strength = 0.2) {
   const flash = document.createElement('div');
   flash.className = 'fx-flash';
   flash.style.background = color;
@@ -42,12 +39,10 @@ export function flashBoard(board: HTMLElement, color: string, strength = 0.55) {
   const a = flash.animate(
     [
       { opacity: strength, offset: 0 },
-      { opacity: 0, offset: 0.34 },
-      { opacity: strength * 0.5, offset: 0.5 },
-      { opacity: 0, offset: 0.75 },
+      { opacity: 0, offset: 0.5 },
       { opacity: 0, offset: 1 },
     ],
-    { duration: 260, easing: 'steps(1, end)' },
+    { duration: 160, easing: 'steps(1, end)' },
   );
   a.onfinish = () => flash.remove();
 }
@@ -77,43 +72,39 @@ export function playAttack(o: AttackOptions): number {
   const ux = (b.x - a.x) / dist;
   const uy = (b.y - a.y) / dist;
   const hitMs = spec.ms * spec.hit;
-  const total = spec.ms + 280;
 
-  // 1) El atacante vuelve visualmente a su casilla y hace su movimiento propio (a saltos).
-  const at = (x: number, y: number, extra = '') => `translate(${x * 100}%, ${y * 100}%) ${extra}`;
+  // 1) El atacante hace su movimiento propio sin deformarse: se echa atrás, embiste (cuerpo a
+  //    cuerpo) o retrocede un poco al disparar, y al final se desliza hasta la casilla capturada.
+  const at = (x: number, y: number) => `translate(${x * 100}%, ${y * 100}%)`;
+  const duration = hitMs + (spec.melee ? 380 : 560);
   if (o.attackerEl && canAnimate(o.attackerEl)) {
-    const f = (ms: number) => Math.min(0.99, ms / total);
+    const f = (ms: number) => Math.min(0.99, Math.max(0.01, ms / duration));
+    const out = 'cubic-bezier(0.2, 0.7, 0.3, 1)';
+    const inn = 'cubic-bezier(0.55, 0, 1, 0.55)';
     const frames: Keyframe[] = spec.melee
       ? [
-          { offset: 0, transform: at(dx, dy) },
-          { offset: f(hitMs - 170), transform: at(dx - ux * 0.3, dy - uy * 0.3, 'scale(1.1,0.9)') },
-          { offset: f(hitMs), transform: at(dx * 0.02, dy * 0.02, 'scale(1.25,0.8)') },
-          { offset: f(hitMs + 140), transform: at(0, -0.1, 'scale(0.94,1.1)') },
+          { offset: 0, transform: at(dx, dy), easing: out },
+          { offset: f(hitMs - 210), transform: at(dx - ux * 0.22, dy - uy * 0.22), easing: inn },
+          { offset: f(hitMs), transform: at(dx * 0.12, dy * 0.12), easing: out },
+          { offset: f(hitMs + 90), transform: at(dx * 0.08, dy * 0.08), easing: out },
           { offset: 1, transform: at(0, 0) },
         ]
       : [
-          { offset: 0, transform: at(dx, dy) },
-          {
-            offset: f(hitMs * 0.5),
-            transform: at(dx - ux * 0.04, dy - uy * 0.04, 'scale(1.05,0.95)'),
-          },
-          { offset: f(hitMs - 30), transform: at(dx, dy, 'scale(0.95,1.08)') },
-          {
-            offset: f(hitMs + 30),
-            transform: at(dx - ux * 0.22, dy - uy * 0.22, 'scale(1.1,0.9)'),
-          },
-          { offset: f(hitMs + 220), transform: at(dx, dy) },
-          { offset: f(hitMs + 340), transform: at(dx * 0.5, dy * 0.5 - 0.5, 'scale(0.92,1.12)') },
+          { offset: 0, transform: at(dx, dy), easing: out },
+          { offset: f(hitMs - 40), transform: at(dx, dy), easing: out },
+          { offset: f(hitMs + 50), transform: at(dx - ux * 0.09, dy - uy * 0.09), easing: out },
+          { offset: f(hitMs + 190), transform: at(dx, dy), easing: 'ease-in-out' },
           { offset: 1, transform: at(0, 0) },
         ];
-    const duration = total + (spec.melee ? 0 : 340);
     // Cuadro de ataque del sprite (ojos encendidos, cuerpo estirado) mientras dura el ataque.
     const sprite = o.attackerEl.querySelector<HTMLElement>('.sprite');
     if (sprite) {
       sprite.classList.add('atk');
-      o.defer(() => sprite.classList.remove('atk'), duration);
+      o.defer(() => sprite.classList.remove('atk'), hitMs + 200);
     }
-    o.attackerEl.animate(frames, { duration, easing: stepsFor(duration), fill: 'backwards' });
+    // z-index alto: si no, las casillas que se pintan después taparían al atacante.
+    for (const k of frames) k.zIndex = 3;
+    o.attackerEl.animate(frames, { duration, fill: 'backwards' });
   }
 
   // 2) El arma (pixel art en el canvas de baja resolución).
@@ -162,17 +153,16 @@ export function playAttack(o: AttackOptions): number {
       ...shatter(b.x, b.y, U, ux, uy, 8 + value * 2),
       ...dustPuff(b.x, b.y, U),
     ]);
-    flashBoard(o.board, spec.flash);
     shakeBoard(o.board, spec.shake + Math.round(value * 0.4), ux, uy);
     // Daño: un número pequeño en fuente de píxeles (como el "1" y el "2" del juego de referencia).
     if (o.victim && value > 0) {
       o.stage?.playText(
         `+${value}`,
-        { x: Math.round(b.x), y: Math.round(b.y) - 7 },
-        value >= 5 ? 2 : 1,
+        { x: Math.round(b.x), y: Math.round(b.y) - 14 },
+        value >= 5 ? 3 : 2,
         C.yellow,
         900,
-        8,
+        12,
       );
     }
   }
@@ -204,7 +194,7 @@ export function mateFlourish(
   const x = kingCenter[0] * U;
   const y = kingCenter[1] * U;
   particles?.add([...captureBurst(x, y, U * 1.6), ...shatter(x, y, U, 0, -1, 26)]);
-  flashBoard(board, color, 0.7);
+  flashBoard(board, color, 0.35);
   shakeBoard(board, 9, 1, 1, 520);
-  stage?.playText('MATE', { x: 64, y: 62 }, 4, C.pink, 1900, 0, true);
+  stage?.playText('MATE', { x: 128, y: 124 }, 6, C.pink, 1900, 0, true);
 }

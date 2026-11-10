@@ -3,7 +3,7 @@ import { BASE, FRAMES, PALETTE, SIZE, frames } from '../src/components/Board/spr
 
 describe('piezas en pixel art', () => {
   for (const type of ['p', 'n', 'b', 'r', 'q', 'k']) {
-    it(`la pieza ${type} tiene 6 cuadros de 16×16 y solo usa colores de la paleta`, () => {
+    it(`la pieza ${type} tiene 6 cuadros de 32×32 y solo usa colores de la paleta`, () => {
       const all = frames(type);
       expect(all).toHaveLength(FRAMES);
       for (const rows of all) {

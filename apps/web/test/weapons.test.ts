@@ -36,14 +36,14 @@ describe('armas de las piezas', () => {
     expect(spec.hit).toBeGreaterThan(0.2);
     expect(spec.hit).toBeLessThan(0.8);
     for (const target of [
-      { x: 100, y: 30 },
-      { x: 30, y: 100 },
-      { x: 16, y: 16 },
-      { x: 100, y: 100 },
+      { x: 200, y: 60 },
+      { x: 60, y: 200 },
+      { x: 32, y: 32 },
+      { x: 200, y: 200 },
     ]) {
       const { g, calls } = fakeContext();
       for (let p = 0; p <= 1.0001; p += 0.02) {
-        expect(() => spec.draw(g, Math.min(1, p), { x: 64, y: 64 }, target)).not.toThrow();
+        expect(() => spec.draw(g, Math.min(1, p), { x: 128, y: 128 }, target)).not.toThrow();
       }
       expect(calls.length).toBeGreaterThan(20);
     }

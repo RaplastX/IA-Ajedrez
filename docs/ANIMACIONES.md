@@ -81,18 +81,19 @@ Referencia visual: el estilo de *Shotgun King* (pixel art nítido, paleta de poc
 duros, animación "a saltos"). Todo está dibujado por código con arte propio, sin recursos de ese juego.
 El ajedrez en sí no cambia: mismas piezas, mismas reglas.
 
-- Los efectos se dibujan en un canvas de **128×128** (16 píxeles por casilla) que se escala **sin
+- Los efectos se dibujan en un canvas de **256×256** (32 píxeles por casilla, la misma densidad que las piezas) que se escala **sin
   suavizado** (`image-rendering: pixelated`). Nada de degradados, brillos ni desenfoques.
 - Paleta fija: crema, lavanda, azul marino, rosa, amarillo, naranja, blanco y grises (`lib/pixel.ts`).
-- Las animaciones avanzan a ~14 cuadros por segundo y las partículas a 18, con *hit-stop* de 80 ms.
-- Al impactar, **todo el tablero se tiñe** del color del arma durante un instante y tiembla en píxeles
-  enteros, como en el juego de referencia. El daño aparece como un número pequeño en fuente de píxeles.
+- Las animaciones avanzan a ~16 cuadros por segundo y las partículas a 18, con *hit-stop* de 80 ms.
+- Al impactar, **la casilla golpeada parpadea en blanco** (destello local, no de toda la pantalla), el
+  tablero tiembla en píxeles enteros y aparece el daño como un número pequeño en fuente de píxeles.
 - Sin carteles ni onomatopeyas: solo el número de daño y "MATE".
 
 ## Armas de cada pieza
 
-Cada captura es un pequeño combate: el atacante vuelve a su casilla, se arma y usa **su arma**; la pieza
-capturada parpadea en blanco y se rompe en píxeles. Dibujado en `lib/weapons.ts`, coreografía en
+Cada captura es un pequeño combate: el atacante se arma y usa **su arma**; la pieza
+capturada parpadea en blanco y se rompe en píxeles. Las armas son sprites propios (`lib/weaponArt.ts`) que giran en saltos de 15°; los efectos de cada
+golpe (tajos curvos, rayo, explosión, perdigones) están en `lib/weapons.ts`; coreografía en
 `lib/attackFx.ts`.
 
 | Pieza | Arma | Cómo ataca | Color del destello |
@@ -107,12 +108,13 @@ capturada parpadea en blanco y se rompe en píxeles. Dibujado en `lib/weapons.ts
 **Jaque mate:** si el mate no es una captura, la pieza dispara su arma contra el rey; después el rey se
 tambalea y cae, parpadea "MATE" en pixel art y el tablero se sacude con fuerza.
 
-**Movimiento con personalidad:** peón (saltito), caballo (gran salto con giro), alfil (carrera en
-diagonal con estela de chispas), torre (desliza pesada y hace temblar el tablero), dama (gira 360° al
-moverse) y rey (pisotón).
+**Movimiento limpio:** las piezas se deslizan rápido a su casilla con un pequeño rebote y una nubecita
+de polvo; solo el caballo describe un arco corto. Sin giros ni deformaciones (así los píxeles no se
+ven borrosos). Al capturar, el atacante no se deforma: se echa atrás o embiste, usa su arma y después
+se desliza a la casilla.
 
-**Piezas en pixel art (dibujo propio):** las 12 piezas son sprites de 16×16 dibujados a mano en
-`components/Board/sprites.ts`: blancas crema con contorno marino y negras azul pizarra con ojos rojos.
+**Piezas en pixel art (dibujo propio):** las 12 piezas son sprites de 32×32 generados por código en
+`components/Board/sprites.ts` (formas, contorno y sombreado automáticos, y detalles a mano): blancas crema con contorno marino y negras azul pizarra con ojos rojos.
 Cada una tiene **6 cuadros de animación**: reposo, aplastada, parpadeo, estirada o destello de la gema,
 ataque (ojos encendidos, cuerpo estirado) y daño (blanca con ojos cerrados). En reposo alternan
 cuadros con desfase entre piezas; al atacar usan el cuadro de ataque; al ser capturadas parpadean en blanco.

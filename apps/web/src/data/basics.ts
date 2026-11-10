@@ -56,7 +56,10 @@ export const BASICS: Lesson[] = [
           en: 'Your turn: move the pawn two squares, to e4.',
         },
         accept: ['e4'],
-        success: { es: '¡Muy bien! Esa es la jugada más común de todas.', en: 'Well done! That is the most common move of all.' },
+        success: {
+          es: '¡Muy bien! Esa es la jugada más común de todas.',
+          en: 'Well done! That is the most common move of all.',
+        },
       },
       {
         fen: '4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1',
@@ -65,7 +68,10 @@ export const BASICS: Lesson[] = [
           en: 'The pawn does NOT capture straight ahead but diagonally. A black pawn stands on d5, diagonal to yours. Capture it by moving your pawn to d5.',
         },
         accept: ['exd5'],
-        success: { es: 'Capturar es quitar una pieza rival del tablero poniéndote en su casilla.', en: 'Capturing means removing an enemy piece by landing on its square.' },
+        success: {
+          es: 'Capturar es quitar una pieza rival del tablero poniéndote en su casilla.',
+          en: 'Capturing means removing an enemy piece by landing on its square.',
+        },
       },
     ],
   },
@@ -89,7 +95,10 @@ export const BASICS: Lesson[] = [
           en: 'Move the rook to d8: that attacks the black king (this is called check).',
         },
         accept: ['Rd8'],
-        success: { es: '¡Jaque! El rey negro está en peligro y debe escapar.', en: 'Check! The black king is in danger and must escape.' },
+        success: {
+          es: '¡Jaque! El rey negro está en peligro y debe escapar.',
+          en: 'Check! The black king is in danger and must escape.',
+        },
       },
     ],
   },
@@ -108,9 +117,15 @@ export const BASICS: Lesson[] = [
       },
       {
         fen: '4k3/8/8/8/3B4/8/8/4K3 w - - 0 1',
-        text: { es: 'Lleva el alfil hasta la esquina h8.', en: 'Move the bishop to the corner h8.' },
+        text: {
+          es: 'Lleva el alfil hasta la esquina h8.',
+          en: 'Move the bishop to the corner h8.',
+        },
         accept: ['Bh8'],
-        success: { es: 'Eso es: la diagonal larga atraviesa todo el tablero.', en: 'That is it: the long diagonal crosses the whole board.' },
+        success: {
+          es: 'Eso es: la diagonal larga atraviesa todo el tablero.',
+          en: 'That is it: the long diagonal crosses the whole board.',
+        },
       },
     ],
   },
@@ -129,7 +144,10 @@ export const BASICS: Lesson[] = [
       },
       {
         fen: '4k3/8/8/8/3Q4/8/8/4K3 w - - 0 1',
-        text: { es: 'Da jaque al rey negro llevando la dama a d8.', en: 'Check the black king by moving the queen to d8.' },
+        text: {
+          es: 'Da jaque al rey negro llevando la dama a d8.',
+          en: 'Check the black king by moving the queen to d8.',
+        },
         accept: ['Qd8'],
         success: { es: '¡Jaque con la dama!', en: 'Check with the queen!' },
       },
@@ -152,7 +170,10 @@ export const BASICS: Lesson[] = [
         fen: '4k3/8/8/8/8/8/8/4K3 w - - 0 1',
         text: { es: 'Mueve el rey a e2.', en: 'Move the king to e2.' },
         accept: ['Ke2'],
-        success: { es: 'Bien. Es lento, pero hay que cuidarlo.', en: 'Good. It is slow, but it needs protecting.' },
+        success: {
+          es: 'Bien. Es lento, pero hay que cuidarlo.',
+          en: 'Good. It is slow, but it needs protecting.',
+        },
       },
     ],
   },
@@ -171,9 +192,15 @@ export const BASICS: Lesson[] = [
       },
       {
         fen: '4k3/8/8/8/3N4/8/8/4K3 w - - 0 1',
-        text: { es: 'Mueve el caballo a f5 (dos a la derecha... y una arriba).', en: 'Move the knight to f5 (two right... and one up).' },
+        text: {
+          es: 'Mueve el caballo a f5 (dos a la derecha... y una arriba).',
+          en: 'Move the knight to f5 (two right... and one up).',
+        },
         accept: ['Nf5'],
-        success: { es: '¡Perfecto! La "L" puede apuntar en cualquier dirección.', en: 'Perfect! The "L" can point in any direction.' },
+        success: {
+          es: '¡Perfecto! La "L" puede apuntar en cualquier dirección.',
+          en: 'Perfect! The "L" can point in any direction.',
+        },
       },
     ],
   },
@@ -217,7 +244,10 @@ export const BASICS: Lesson[] = [
           en: 'Look: the black king is boxed in by its own pawns. Checkmate with the rook on a8.',
         },
         accept: ['Ra8'],
-        success: { es: '¡JAQUE MATE! Es el famoso "mate del pasillo". Has ganado la partida.', en: 'CHECKMATE! This is the famous "back-rank mate". You won the game.' },
+        success: {
+          es: '¡JAQUE MATE! Es el famoso "mate del pasillo". Has ganado la partida.',
+          en: 'CHECKMATE! This is the famous "back-rank mate". You won the game.',
+        },
       },
     ],
   },
@@ -233,7 +263,10 @@ export const BASICS: Lesson[] = [
           en: 'CASTLING: you move the king two squares towards a rook and the rook jumps to the other side of the king. It tucks the king away safely. It is only allowed if neither the king nor that rook has moved, nothing is in between and the king is not in check. Castle to the right: tap the king and move it to g1.',
         },
         accept: ['O-O'],
-        success: { es: '¡Enroque! El rey está en g1 y la torre en f1.', en: 'Castled! The king is on g1 and the rook on f1.' },
+        success: {
+          es: '¡Enroque! El rey está en g1 y la torre en f1.',
+          en: 'Castled! The king is on g1 and the rook on f1.',
+        },
       },
       {
         fen: '4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1',
@@ -242,7 +275,10 @@ export const BASICS: Lesson[] = [
           en: 'EN PASSANT: if an enemy pawn advances two squares and lands right beside yours, you may capture it on that very turn as if it had moved only one. The black pawn just went from d7 to d5. Capture it by moving your pawn to d6.',
         },
         accept: ['exd6'],
-        success: { es: '¡Captura al paso! Solo se puede hacer justo después de que el peón avance.', en: 'En passant! It is only possible right after the pawn advances.' },
+        success: {
+          es: '¡Captura al paso! Solo se puede hacer justo después de que el peón avance.',
+          en: 'En passant! It is only possible right after the pawn advances.',
+        },
       },
       {
         fen: '4k3/P7/8/8/8/8/8/4K3 w - - 0 1',
@@ -251,7 +287,10 @@ export const BASICS: Lesson[] = [
           en: 'PROMOTION: when a pawn reaches the last row it becomes any piece you choose (almost always a queen). Move the pawn to a8 and choose the queen.',
         },
         accept: ['a8=Q'],
-        success: { es: '¡Nueva dama! Por eso los peones valen más cuanto más avanzan.', en: 'A new queen! That is why pawns become more valuable as they advance.' },
+        success: {
+          es: '¡Nueva dama! Por eso los peones valen más cuanto más avanzan.',
+          en: 'A new queen! That is why pawns become more valuable as they advance.',
+        },
       },
     ],
   },
@@ -309,7 +348,10 @@ export const BASICS: Lesson[] = [
           en: 'At the start you have three goals: 1) control the centre (d4, e4, d5, e5), 2) bring out your pieces (knights and bishops) and 3) tuck your king away by castling. Let us do it with a classic opening. Step 1: move the king pawn to e4.',
         },
         accept: ['e4'],
-        success: { es: 'Bien: ocupas el centro y abres camino a la dama y al alfil. Las negras respondieron e5.', en: 'Good: you hold the centre and open lines for the queen and bishop. Black replied e5.' },
+        success: {
+          es: 'Bien: ocupas el centro y abres camino a la dama y al alfil. Las negras respondieron e5.',
+          en: 'Good: you hold the centre and open lines for the queen and bishop. Black replied e5.',
+        },
       },
       {
         fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',
@@ -318,16 +360,22 @@ export const BASICS: Lesson[] = [
           en: 'Step 2: bring out a knight. Move the right-hand knight to f3: it leaves the corner and attacks the black e5 pawn.',
         },
         accept: ['Nf3'],
-        success: { es: 'Los caballos van antes que los alfiles. Las negras defendieron con Cc6.', en: 'Knights come out before bishops. Black defended with Nc6.' },
+        success: {
+          es: 'Los caballos van antes que los alfiles. Las negras defendieron con Cc6.',
+          en: 'Knights come out before bishops. Black defended with Nc6.',
+        },
       },
       {
         fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3',
         text: {
           es: 'Paso 3: saca el alfil. Llévalo a c4: desde ahí apunta a la casilla f7, el punto débil de las negras.',
-          en: 'Step 3: bring out the bishop. Move it to c4: from there it aims at f7, Black\'s weak spot.',
+          en: "Step 3: bring out the bishop. Move it to c4: from there it aims at f7, Black's weak spot.",
         },
         accept: ['Bc4'],
-        success: { es: 'Esta es la "Apertura Italiana". Las negras sacaron su alfil a c5.', en: 'This is the "Italian Game". Black developed its bishop to c5.' },
+        success: {
+          es: 'Esta es la "Apertura Italiana". Las negras sacaron su alfil a c5.',
+          en: 'This is the "Italian Game". Black developed its bishop to c5.',
+        },
       },
       {
         fen: 'r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4',
@@ -336,14 +384,20 @@ export const BASICS: Lesson[] = [
           en: 'Step 4: castle to protect your king. Tap the king and move it to g1 (two squares right).',
         },
         accept: ['O-O'],
-        success: { es: '¡Listo! En cuatro jugadas desarrollaste piezas, controlaste el centro y pusiste a salvo el rey. Ahora ya puedes jugar una partida de verdad.', en: 'Done! In four moves you developed pieces, controlled the centre and made your king safe. Now you can play a real game.' },
+        success: {
+          es: '¡Listo! En cuatro jugadas desarrollaste piezas, controlaste el centro y pusiste a salvo el rey. Ahora ya puedes jugar una partida de verdad.',
+          en: 'Done! In four moves you developed pieces, controlled the centre and made your king safe. Now you can play a real game.',
+        },
       },
     ],
   },
   {
     id: 'b14-scholars-mate',
     topic: 'basics',
-    title: { es: '14. El mate del pastor (y cómo evitarlo)', en: '14. Scholar\'s mate (and how to avoid it)' },
+    title: {
+      es: '14. El mate del pastor (y cómo evitarlo)',
+      en: "14. Scholar's mate (and how to avoid it)",
+    },
     steps: [
       {
         fen: START,
@@ -355,12 +409,18 @@ export const BASICS: Lesson[] = [
       },
       {
         fen: 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',
-        text: { es: 'Ahora el alfil a c4, apuntando al punto débil f7.', en: 'Now the bishop to c4, aiming at the weak point f7.' },
+        text: {
+          es: 'Ahora el alfil a c4, apuntando al punto débil f7.',
+          en: 'Now the bishop to c4, aiming at the weak point f7.',
+        },
         accept: ['Bc4'],
       },
       {
         fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 2 3',
-        text: { es: 'Saca la dama a h5: ahora amenazas f7 con dos piezas.', en: 'Bring the queen out to h5: now you threaten f7 with two pieces.' },
+        text: {
+          es: 'Saca la dama a h5: ahora amenazas f7 con dos piezas.',
+          en: 'Bring the queen out to h5: now you threaten f7 with two pieces.',
+        },
         accept: ['Qh5'],
       },
       {

@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { mateFlourish, playAttack } from '../../lib/attackFx';
-import { captureBurst, dustPuff, ParticleSystem, shatter } from '../../lib/fx';
+import { captureBurst, dustPuff, ParticleSystem } from '../../lib/fx';
 import { UNIT, WEAPONS, WeaponStage, type WeaponId } from '../../lib/weapons';
 import { tap } from '../../lib/haptics';
 import { play } from '../../lib/sound';
@@ -43,79 +43,17 @@ export interface BoardProps {
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 /** Personalidad de movimiento de cada pieza. */
-const MOVE_STYLE: Record<
-  string,
-  {
-    hop: number;
-    ms: number;
-    air: string;
-    land: string;
-    skew: number;
-    spin: number;
-    trail: 'dust' | 'spark';
-    quake: number;
-  }
-> = {
-  p: {
-    hop: 0.28,
-    ms: 280,
-    air: '0.94, 1.1',
-    land: '1.15, 0.85',
-    skew: 0,
-    spin: 0,
-    trail: 'dust',
-    quake: 0,
-  },
-  n: {
-    hop: 0.9,
-    ms: 420,
-    air: '0.9, 1.18',
-    land: '1.25, 0.75',
-    skew: 0,
-    spin: -24,
-    trail: 'dust',
-    quake: 3,
-  },
-  b: {
-    hop: 0.08,
-    ms: 230,
-    air: '0.85, 1.05',
-    land: '1.1, 0.9',
-    skew: -16,
-    spin: 0,
-    trail: 'spark',
-    quake: 0,
-  },
-  r: {
-    hop: 0.05,
-    ms: 360,
-    air: '1.1, 0.92',
-    land: '1.2, 0.8',
-    skew: 0,
-    spin: 0,
-    trail: 'dust',
-    quake: 5,
-  },
-  q: {
-    hop: 0.35,
-    ms: 380,
-    air: '1.05, 1.1',
-    land: '1.15, 0.88',
-    skew: 0,
-    spin: 360,
-    trail: 'spark',
-    quake: 0,
-  },
-  k: {
-    hop: 0.2,
-    ms: 440,
-    air: '1.1, 1.05',
-    land: '1.35, 0.7',
-    skew: 0,
-    spin: 0,
-    trail: 'dust',
-    quake: 8,
-  },
+/**
+ * Movimiento normal: un deslizamiento limpio y rápido con un pequeño rebote al llegar. El caballo
+ * describe un arco corto (es la única pieza que salta); sin giros ni deformaciones.
+ */
+const MOVE_STYLE: Record<string, { arc: number; ms: number }> = {
+  p: { arc: 0, ms: 220 },
+  n: { arc: 0.32, ms: 300 },
+  b: { arc: 0, ms: 240 },
+  r: { arc: 0, ms: 260 },
+  q: { arc: 0, ms: 260 },
+  k: { arc: 0, ms: 240 },
 };
 
 function squareAt(col: number, row: number, orientation: 'w' | 'b'): string {
@@ -221,7 +159,7 @@ export function Board({
     const board = boardRef.current;
     if (!animate || !board) return;
     droppedAt.current = null;
-    const size = UNIT; // píxeles de juego por casilla (canvas de 128×128)
+    const size = UNIT; // píxeles de juego por casilla (canvas de 256×256)
     const piece = board.querySelector<HTMLElement>(`[data-square="${to}"] .piece`);
     const [fx, fy] = squareCenter(from, orientation);
     const [tx, ty] = squareCenter(to, orientation);
@@ -260,58 +198,32 @@ export function Board({
         defer: later,
       });
     } else {
-      // Movimiento normal: cada pieza se mueve con su propia personalidad.
+      // Movimiento normal: deslizamiento limpio con un pequeño rebote al llegar.
       const style = MOVE_STYLE[moved.type] ?? MOVE_STYLE.p!;
       const distance = Math.hypot(dx, dy);
-      const hop = style.hop * (1 + distance * 0.12) * 100;
-      const spin = style.spin ? `rotate(${style.spin}deg)` : '';
+      const ms = style.ms + Math.min(3, distance) * 40;
       if (piece && canAnimate(piece)) {
-        piece.animate(
-          [
-            { transform: `translate(${dx * 100}%, ${dy * 100}%) scale(1, 1)`, zIndex: 3 },
-            {
-              transform: `translate(${dx * 50}%, ${dy * 50 - hop}%) scale(${style.air}) ${spin} skewX(${style.skew}deg)`,
-              offset: 0.5,
-              zIndex: 3,
-            },
-            { transform: `translate(0, 0) scale(${style.land})`, offset: 0.84, zIndex: 3 },
-            { transform: 'translate(0, -4%) scale(0.96, 1.05)', offset: 0.93, zIndex: 3 },
-            { transform: 'translate(0, 0) scale(1, 1)', zIndex: 3 },
-          ],
-          { duration: style.ms, easing: 'cubic-bezier(0.33, 0, 0.2, 1)' },
-        );
-      }
-      // Estela a lo largo del recorrido y golpe al aterrizar.
-      for (let i = 1; i <= 4; i++) {
-        const k = i / 5;
-        later(
-          () => {
-            const x = (fx + (tx - fx) * k) * size;
-            const y = (fy + (ty - fy) * k) * size;
-            system?.add(
-              style.trail === 'spark'
-                ? shatter(x, y, size, tx - fx, ty - fy, 5)
-                : dustPuff(x, y, size),
-            );
-          },
-          style.ms * k * 0.9,
-        );
-      }
-      later(() => {
-        system?.add(dustPuff(tx * size, ty * size, size));
-        if (style.quake && board.animate) {
-          board.animate(
-            [
-              { transform: 'translate(0,0)' },
-              { transform: `translate(0, ${style.quake}px)` },
-              { transform: `translate(0, ${-style.quake * 0.5}px)` },
-              { transform: 'translate(0,0)' },
-            ],
-            { duration: 200, easing: 'ease-out' },
-          );
+        const frames: Keyframe[] = [];
+        const N = 8;
+        for (let i = 0; i <= N; i++) {
+          const t = i / N;
+          const lift = style.arc * Math.sin(t * Math.PI) * 100;
+          frames.push({
+            offset: Number((t * 0.86).toFixed(3)),
+            transform: `translate(${dx * (1 - t) * 100}%, ${dy * (1 - t) * 100 - lift}%)`,
+            zIndex: 3,
+          });
         }
-      }, style.ms * 0.84);
-      settle = style.ms;
+        frames.push(
+          { offset: 0.93, transform: 'translate(0, -5%)', zIndex: 3 },
+          { offset: 1, transform: 'translate(0, 0)', zIndex: 3 },
+        );
+        piece.animate(frames, { duration: ms, easing: 'cubic-bezier(0.25, 0.8, 0.3, 1)' });
+      }
+      // Una nubecita de polvo al salir y otra al llegar.
+      later(() => system?.add(dustPuff(fx * size, fy * size, size)), 30);
+      later(() => system?.add(dustPuff(tx * size, ty * size, size)), ms * 0.86);
+      settle = ms;
       // Mate sin captura: el atacante dispara su arma contra el rey.
       if (isMate && loserKing) {
         const king = squareCenter(loserKing, orientation);
@@ -326,8 +238,8 @@ export function Board({
               tap('heavy');
             },
           );
-        }, style.ms + 40);
-        settle = style.ms + 40 + WEAPONS[weapon].ms * WEAPONS[weapon].hit;
+        }, ms + 40);
+        settle = ms + 40 + WEAPONS[weapon].ms * WEAPONS[weapon].hit;
       }
     }
 
