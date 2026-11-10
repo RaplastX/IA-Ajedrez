@@ -18,3 +18,4 @@ __pycache__/
 .pytest_cache/
 ml/artifacts/
 ml/data/raw/
+infra/cloudflare/dist/
