@@ -1,6 +1,12 @@
 /** Punto de entrada del servidor. */
+import { existsSync } from 'node:fs';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
+
+// En desarrollo se lee .env (del directorio actual o de la raíz del monorepo). En producción las
+// variables llegan del entorno (Docker, Kubernetes, Cloud Run) y no hay archivo.
+const envFile = ['.env', '../../.env'].find((file) => existsSync(file));
+if (envFile) process.loadEnvFile(envFile);
 
 const config = loadConfig();
 

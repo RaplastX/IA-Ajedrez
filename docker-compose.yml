@@ -1,0 +1,44 @@
+# Entorno completo en local: PostgreSQL + API + web.
+#   cp .env.example .env   # y rellena JWT_SECRET
+#   docker compose up --build
+# Web: http://localhost:8080  ·  API: http://localhost:3000/health
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ajedrez
+      POSTGRES_USER: ajedrez
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ajedrez}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ajedrez -d ajedrez']
+      interval: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://ajedrez:${POSTGRES_PASSWORD:-ajedrez}@db:5432/ajedrez
+      CORS_ORIGINS: http://localhost:8080
+      PUBLIC_WEB_URL: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      - api
+    ports:
+      - '8080:8080'
+
+volumes:
+  db-data:

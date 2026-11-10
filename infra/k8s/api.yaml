@@ -1,0 +1,57 @@
+# API de IA Ajedrez. Requisitos: un Secret "ia-ajedrez" con JWT_SECRET y DATABASE_URL
+# (y opcionalmente ANTHROPIC_API_KEY, STRIPE_*), y PostgreSQL gestionado (Cloud SQL, RDS...).
+#
+#   kubectl create secret generic ia-ajedrez --from-env-file=.env
+#   kubectl apply -f infra/k8s/
+#
+# Multijugador: el estado de las partidas en curso vive en memoria del proceso. Con más de una
+# réplica hace falta afinidad de sesión en el WebSocket (ver ingress.yaml) o un bus compartido
+# (Redis pub/sub) — ver docs/ROADMAP.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ia-ajedrez-api
+  labels: { app: ia-ajedrez-api }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ia-ajedrez-api }
+  template:
+    metadata:
+      labels: { app: ia-ajedrez-api }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: api
+          image: ghcr.io/OWNER/ia-ajedrez-api:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: ia-ajedrez
+          env:
+            - name: NODE_ENV
+              value: production
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: '1', memory: 512Mi }
+          readinessProbe:
+            httpGet: { path: /ready, port: 3000 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ia-ajedrez-api
+spec:
+  selector: { app: ia-ajedrez-api }
+  ports:
+    - port: 3000
+      targetPort: 3000

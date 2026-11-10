@@ -1,0 +1,23 @@
+{
+  "name": "@ia-ajedrez/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:web": "npm run build -w @ia-ajedrez/web",
+    "add:android": "cap add android",
+    "add:ios": "cap add ios",
+    "sync": "npm run build:web && cap sync",
+    "android": "npm run sync && cap open android",
+    "ios": "npm run sync && cap open ios",
+    "doctor": "cap doctor"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0"
+  }
+}

@@ -11,8 +11,6 @@ coverage/
 playwright-report/
 test-results/
 apps/web/public/engine/
-apps/mobile/android/
-apps/mobile/ios/
 apps/server/.data/
 __pycache__/
 *.pyc

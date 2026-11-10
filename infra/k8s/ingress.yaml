@@ -1,0 +1,29 @@
+# Ingress con nginx-ingress y certificados de cert-manager. Cambia el dominio.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ia-ajedrez
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    # Afinidad para que un jugador reconecte con la misma réplica de la API.
+    nginx.ingress.kubernetes.io/affinity: cookie
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [ajedrez.example.com]
+      secretName: ia-ajedrez-tls
+  rules:
+    - host: ajedrez.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend: { service: { name: ia-ajedrez-api, port: { number: 3000 } } }
+          - path: /ws
+            pathType: Prefix
+            backend: { service: { name: ia-ajedrez-api, port: { number: 3000 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: ia-ajedrez-web, port: { number: 8080 } } }

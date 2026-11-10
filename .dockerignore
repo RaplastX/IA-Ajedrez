@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.vite
+**/coverage
+**/playwright-report
+**/test-results
+apps/web/public/engine
+apps/mobile/android
+apps/mobile/ios
+ml
+docs
+.git
+.github
+**/*.log
+.env
+.env.*

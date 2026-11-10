@@ -15,7 +15,9 @@ def sample_pgn() -> Path:
 @pytest.fixture
 def engine_cmd() -> str:
     """Stockfish nativo si existe; si no, Stockfish.js (WASM) del monorepo ejecutado con Node."""
-    native = shutil.which("stockfish")
+    native = shutil.which("stockfish") or next(
+        (p for p in ("/usr/games/stockfish", "/usr/bin/stockfish") if Path(p).exists()), None
+    )
     if native:
         return native
     wasm = ROOT / "node_modules" / "stockfish" / "bin" / "stockfish-19-lite-single.js"

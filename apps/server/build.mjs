@@ -9,7 +9,7 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.devDependencies ?? {}),
-];
+].filter((name) => !name.startsWith('@ia-ajedrez/'));
 
 await build({
   entryPoints: ['src/server.ts'],

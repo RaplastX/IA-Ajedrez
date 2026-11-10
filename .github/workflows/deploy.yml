@@ -1,0 +1,103 @@
+name: Deploy
+
+# Publica las imágenes en GitHub Container Registry y, si está configurado, despliega:
+#   - Web en Vercel:      variable DEPLOY_WEB=vercel   + secretos VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#   - API en Cloud Run:   variable DEPLOY_API=cloudrun + secretos GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_SERVICE_ACCOUNT
+#                         y variables GCP_REGION, CLOUD_RUN_SERVICE (los secretos de la app van en Secret Manager)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      api-image: ${{ steps.meta-api.outputs.tags }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta-api
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/ia-ajedrez-api
+          tags: type=sha,format=long
+      - id: meta-web
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/ia-ajedrez-web
+          tags: type=sha,format=long
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=gha,scope=api
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+          build-args: VITE_API_URL=${{ vars.VITE_API_URL }}
+          cache-from: type=gha,scope=web
+
+  web-vercel:
+    if: ${{ vars.DEPLOY_WEB == 'vercel' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @ia-ajedrez/web
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+      - run: cp apps/web/vercel.json apps/web/dist/vercel.json
+      - name: Desplegar en Vercel
+        run: npx --yes vercel@65.14.0 deploy apps/web/dist --prod --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  api-cloudrun:
+    if: ${{ vars.DEPLOY_API == 'cloudrun' }}
+    needs: images
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ needs.images.outputs.api-image }}
+          flags: --port=3000 --min-instances=1 --max-instances=1 --session-affinity --timeout=3600
